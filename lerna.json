@@ -1,0 +1,7 @@
+{
+    "packages": ["contracts", "flashbots-account-abstraction", "frontend"],
+    "npmClient": "yarn",
+    "version": "independent",
+    "useWorkspaces": true,
+    "stream": true
+}

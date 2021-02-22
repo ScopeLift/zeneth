@@ -1,0 +1,39 @@
+{
+  "name": "zeneth",
+  "version": "0.0.1",
+  "description": "Let your ETH chill",
+  "author": "ScopeLift <ben@scopelift.co>",
+  "private": true,
+  "workspaces": [
+    "contracts",
+    "flashbots-account-abstraction",
+    "frontend"
+  ],
+  "devDependencies": {
+    "eslint": "^7.24.0",
+    "eslint-config-prettier": "^8.2.0",
+    "husky": "^6.0.0",
+    "lerna": "^4.0.0",
+    "lint-staged": "^10.5.4",
+    "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "build": "lerna run build",
+    "clean": "lerna run clean",
+    "lint": "lerna run lint",
+    "prettier": "lerna run prettier",
+    "prepare": "lerna run prepare",
+    "test": "lerna run test"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lerna run precommit"
+    }
+  },
+  "volta": {
+    "node": "14.16.1",
+    "yarn": "1.22.10"
+  }
+}
