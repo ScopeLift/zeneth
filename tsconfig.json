@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     { "path": "contracts" },
-    { "path": "flashbots-account-abstraction" },
+    { "path": "faa" },
     { "path": "frontend" }
   ],
   "exclude": ["node_modules"]

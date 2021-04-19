@@ -1,22 +1,6 @@
 {
-  // "extends": "@quasar/app/tsconfig-preset",
-  "extends": "../tsconfig.settings.json",
+  "extends": "@quasar/app/tsconfig-preset",
   "compilerOptions": {
-    "baseUrl": ".",
-    "composite": true,
-    "esModuleInterop": true,
-    "outDir": "build",
-    "resolveJsonModule": true,
-    "rootDir": "src",
-    "paths": {
-      "src/*": ["src/*"],
-      "app/*": ["*"],
-      "components/*": ["src/components/*"],
-      "layouts/*": ["src/layouts/*"],
-      "pages/*": ["src/pages/*"],
-      "assets/*": ["src/assets/*"],
-      "boot/*": ["src/boot/*"]
-    }
-  },
-  "include": ["src", "src/**/*.json"]
+    "baseUrl": "."
+  }
 }

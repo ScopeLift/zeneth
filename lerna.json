@@ -1,5 +1,5 @@
 {
-    "packages": ["contracts", "flashbots-account-abstraction", "frontend"],
+    "packages": ["contracts", "faa", "frontend"],
     "npmClient": "yarn",
     "version": "independent",
     "useWorkspaces": true,

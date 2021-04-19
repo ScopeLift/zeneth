@@ -6,7 +6,7 @@
   "private": true,
   "workspaces": [
     "contracts",
-    "flashbots-account-abstraction",
+    "faa",
     "frontend"
   ],
   "devDependencies": {

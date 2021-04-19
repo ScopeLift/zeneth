@@ -1,4 +1,8 @@
 node_modules
 coverage
+cache
 yarn-error.log
 .env
+.DS_Store
+.thumbs.db
+.vscode
