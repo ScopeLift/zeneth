@@ -7,13 +7,10 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:vue/essential',
-    'prettier',
-    'prettier/@typescript-eslint',
-    'prettier/vue',
+    'prettier'
   ],
 
-  plugins: ['@typescript-eslint', 'vue'],
+  plugins: ['@typescript-eslint'],
 
   rules: {
     'prefer-const': 'error',

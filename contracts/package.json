@@ -2,6 +2,7 @@
   "name": "@scopelift/zeneth-contracts",
   "description": "Zeneth contracts",
   "version": "0.0.1",
+  "productName": "Zeneth",
   "dependencies": {},
   "devDependencies": {
     "@ethersproject/abstract-signer": "^5.0.6",
@@ -51,13 +52,17 @@
   "license": "UNLICENSED",
   "scripts": {
     "clean": "hardhat clean",
-    "compile": "hardhat compile",
+    "build": "hardhat compile",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
     "lint": "yarn run prettier && yarn run lint:sol && yarn run lint:ts",
     "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
     "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
+    "precommit": "lint-staged",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
     "typechain": "hardhat typechain"
+  },
+  "volta": {
+    "extends": "../package.json"
   }
 }

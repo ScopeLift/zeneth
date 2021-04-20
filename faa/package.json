@@ -1,5 +1,6 @@
 {
   "name": "@scopelift/zeneth-js",
+  "productName": "Zeneth",
   "version": "0.0.1",
   "description": "Flashbots account abstraction tool",
   "main": "build/src/index.js",
@@ -28,7 +29,6 @@
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@types/chai": "^4.2.16",
     "@types/mocha": "^8.2.2",
-    "@umbra/contracts": "^0.0.1",
     "chai": "^4.3.4",
     "dotenv": "^8.2.0",
     "eslint-config-prettier": "^8.2.0",
