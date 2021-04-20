@@ -3,6 +3,7 @@
 Zeneth frontend
 
 ## Install the dependencies
+
 ```bash
 yarn
 ```

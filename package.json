@@ -6,7 +6,7 @@
   "private": true,
   "workspaces": [
     "contracts",
-    "faa",
+    "zeneth-js",
     "frontend"
   ],
   "devDependencies": {

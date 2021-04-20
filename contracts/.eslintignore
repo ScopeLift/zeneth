@@ -11,3 +11,4 @@ typechain/
 # files
 .solcover.js
 coverage.json
+.eslintrc.js

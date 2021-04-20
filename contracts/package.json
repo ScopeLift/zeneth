@@ -56,9 +56,9 @@
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
     "lint": "yarn run prettier && yarn run lint:sol && yarn run lint:ts",
     "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
-    "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
+    "lint:ts": "eslint --ext .js,.ts .",
     "precommit": "lint-staged",
-    "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
+    "prettier": "prettier --write \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
     "typechain": "hardhat typechain"
   },

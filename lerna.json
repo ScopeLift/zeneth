@@ -1,5 +1,5 @@
 {
-    "packages": ["contracts", "faa", "frontend"],
+    "packages": ["contracts", "zeneth-js", "frontend"],
     "npmClient": "yarn",
     "version": "independent",
     "useWorkspaces": true,

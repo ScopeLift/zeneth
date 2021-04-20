@@ -1,18 +1,18 @@
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "solidity-coverage";
+import '@nomiclabs/hardhat-waffle';
+import '@typechain/hardhat';
+import 'hardhat-gas-reporter';
+import 'solidity-coverage';
 
-import "./tasks/accounts";
-import "./tasks/clean";
+import './tasks/accounts';
+import './tasks/clean';
 
-import { resolve } from "path";
+import { resolve } from 'path';
 
-import { config as dotenvConfig } from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
-import { NetworkUserConfig } from "hardhat/types";
+import { config as dotenvConfig } from 'dotenv';
+import { HardhatUserConfig } from 'hardhat/config';
+import { NetworkUserConfig } from 'hardhat/types';
 
-dotenvConfig({ path: resolve(__dirname, "./.env") });
+dotenvConfig({ path: resolve(__dirname, '../.env') });
 
 const chainIds = {
   ganache: 1337,
@@ -32,7 +32,7 @@ const infuraApiKey = process.env.INFURA_ID as string;
 if (!infuraApiKey) throw new Error('Please set your INFURA_ID in a .env file');
 
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = 'https://' + network + '.infura.io/v3/' + infuraApiKey;
   return {
     accounts: {
       count: 10,
@@ -46,12 +46,12 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
 }
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: 'hardhat',
   gasReporter: {
-    currency: "USD",
+    currency: 'USD',
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
-    src: "./contracts",
+    src: './contracts',
   },
   networks: {
     hardhat: {
@@ -60,24 +60,24 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds.hardhat,
     },
-    goerli: createTestnetConfig("goerli"),
-    kovan: createTestnetConfig("kovan"),
-    rinkeby: createTestnetConfig("rinkeby"),
-    ropsten: createTestnetConfig("ropsten"),
+    goerli: createTestnetConfig('goerli'),
+    kovan: createTestnetConfig('kovan'),
+    rinkeby: createTestnetConfig('rinkeby'),
+    ropsten: createTestnetConfig('ropsten'),
   },
   paths: {
-    artifacts: "./artifacts",
-    cache: "./cache",
-    sources: "./contracts",
-    tests: "./test",
+    artifacts: './artifacts',
+    cache: './cache',
+    sources: './contracts',
+    tests: './test',
   },
   solidity: {
-    version: "0.8.3",
+    version: '0.8.3',
     settings: {
       metadata: {
         // Not including the metadata hash
         // https://github.com/paulrberg/solidity-template/issues/31
-        bytecodeHash: "none",
+        bytecodeHash: 'none',
       },
       // You should disable the optimizer when debugging
       // https://hardhat.org/hardhat-network/#solidity-optimizer-support
@@ -88,8 +88,8 @@ const config: HardhatUserConfig = {
     },
   },
   typechain: {
-    outDir: "typechain",
-    target: "ethers-v5",
+    outDir: 'typechain',
+    target: 'ethers-v5',
   },
 };
 

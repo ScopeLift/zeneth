@@ -7,7 +7,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "lint": "yarn run prettier && eslint --ext .js,.ts,.tsx ./",
     "precommit": "lint-staged",
+    "prettier": "prettier --write \"**/*.{js,json,md,sol,ts,tsx}\"",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {

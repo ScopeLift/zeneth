@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     { "path": "contracts" },
-    { "path": "faa" },
+    { "path": "zeneth-js" },
     { "path": "frontend" }
   ],
   "exclude": ["node_modules"]
