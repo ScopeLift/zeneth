@@ -4,6 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 
 import { Signers } from '../types';
 import { shouldBehaveLikeGreeter } from './Greeter.behavior';
+import { Greeter } from '../typechain';
 
 const { deployContract } = hre.waffle;
 
@@ -19,7 +20,7 @@ describe('Unit tests', function () {
     beforeEach(async function () {
       const greeting = 'Hello, world!';
       const greeterArtifact: Artifact = await hre.artifacts.readArtifact('Greeter');
-      this.greeter = await deployContract(this.signers.admin, greeterArtifact, [greeting]);
+      this.greeter = await deployContract(this.signers.admin, greeterArtifact, [greeting]) as Greeter;
     });
 
     shouldBehaveLikeGreeter();
