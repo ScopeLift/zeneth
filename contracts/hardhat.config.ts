@@ -72,7 +72,7 @@ const config: HardhatUserConfig = {
     tests: './test',
   },
   solidity: {
-    version: '0.8.3',
+    version: '0.8.4',
     settings: {
       metadata: {
         // Not including the metadata hash
@@ -83,7 +83,7 @@ const config: HardhatUserConfig = {
       // https://hardhat.org/hardhat-network/#solidity-optimizer-support
       optimizer: {
         enabled: true,
-        runs: 800,
+        runs: 99999,
       },
     },
   },
