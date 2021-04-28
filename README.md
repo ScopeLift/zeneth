@@ -5,7 +5,7 @@
 This project is a monorepo with three packages:
 
 - `contracts` contains the smart contracts
-- `faa` stands for "Flashbots Account Abstractions" and contains the core Zeneth logic
+- `zeneth-js` is a TypeScript library containing the core Zeneth logic
 - `frontend` is a simple frontend app for interacting with Flashbots
 
 ### Dependencies
