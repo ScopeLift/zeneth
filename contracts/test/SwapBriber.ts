@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import { parseEther } from '@ethersproject/units';
 import { Contract } from "@ethersproject/contracts";
 
-
 const { deployContract } = hre.waffle;
 
 // Import Uniswap contract artifacts from their package
@@ -18,6 +17,7 @@ const UniswapV2FactoryArtifact = require('@uniswap/v2-core/build/UniswapV2Factor
 const UniswapV2Router02Artifact = require('@uniswap/v2-periphery/build/UniswapV2Router02.json');
 
 const farFuture = '2000000000'; // Unix timestamp well into the future
+const BLOCK_REWARD = 2; // Miner rewards per block
 
 describe('SwapBriber', () => {
   let admin: SignerWithAddress;
@@ -91,7 +91,7 @@ describe('SwapBriber', () => {
   it('should do a swap bribe', async () => {
     await token.connect(sender).approve(briber.address, bribeTokens);
 
-    await briber
+    const tx = await briber
       .connect(sender)
       .swapAndBribe(
         token.address,
@@ -104,5 +104,18 @@ describe('SwapBriber', () => {
 
     const briberBalance = await token.balanceOf(briber.address);
     expect(briberBalance.eq(0), 'Failed to trade tokens').to.be.true;
+
+    const briberProfit = await ethers.provider.getBalance(briber.address);
+    expect(briberProfit.gt(0), 'Failed to profit from swap').to.be.true;
+
+    // Calculate the expected block rewards and subtract them from the miner's balance;
+    // what's left over should be the coinbase bribe, because we've configured gasPrice
+    // to be zero in the hardhat config
+    const blockRewards = parseEther(String(BLOCK_REWARD * tx.blockNumber!));
+    const block = await ethers.provider.getBlock(tx.blockNumber!);
+    const minerBalance = await ethers.provider.getBalance(block.miner);
+    const coinbaseBribe = minerBalance.sub(blockRewards);
+
+    expect(coinbaseBribe.eq(bribeEth), 'Failed to pay coinbase bribe').to.be.true;
   });
 });
