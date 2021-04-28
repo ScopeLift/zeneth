@@ -14,6 +14,9 @@ if (!authPrivateKey) throw new Error('Please set your AUTH_PRIVATE_KEY in the .e
 // Get auth signer
 const authSigner = new Wallet(authPrivateKey);
 
+// Define constants
+const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
+
 export class FlashbotsRelayer {
   constructor(readonly provider: JsonRpcProvider, readonly flashbotsProvider: FlashbotsBundleProvider) {}
 
@@ -21,7 +24,15 @@ export class FlashbotsRelayer {
    * @notice Returns a new FlashbotsRelayer instance
    */
   static async create(provider: JsonRpcProvider) {
-    const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner);
+    const chainId = (await provider.getNetwork()).chainId;
+
+    // If the chainId is 1, set relayUrl to undefined so FlashbotsBundleProvider uses its `DEFAULT_FLASHBOTS_RELAY`
+    // parameter for mainnet. If chainId is 5, use the current Goerli relayer. Otherwise, chainId is unsupported
+    if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
+    const relayUrl = chainId === 1 ? undefined : GOERLI_RELAY_URL;
+
+    // Return new FlashbotsRelayer instance
+    const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner, relayUrl);
     return new FlashbotsRelayer(provider, flashbotsProvider);
   }
 
