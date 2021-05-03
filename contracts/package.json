@@ -56,6 +56,7 @@
   "scripts": {
     "clean": "hardhat clean",
     "build": "hardhat compile",
+    "deploy": "yarn build && hardhat run scripts/deploy.js",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
     "lint": "yarn run prettier && yarn run lint:sol && yarn run lint:ts",
     "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
