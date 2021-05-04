@@ -90,6 +90,12 @@ const config: HardhatUserConfig = {
     outDir: 'typechain',
     target: 'ethers-v5',
   },
+  mocha: {
+    // Default timeout of tx.wait() in the ethers-provider-flashbots-bundle package is 5 minutes, as linked below,
+    // so we use a 6 minute test timeout
+    // https://github.com/flashbots/ethers-provider-flashbots-bundle/blob/18894d683c1c282536a108ce64b7178a22a05c7e/src/index.ts#L105
+    timeout: 6 * 60 * 1000,
+  },
 };
 
 export default config;

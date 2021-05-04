@@ -44,24 +44,29 @@ export class FlashbotsRelayer {
    */
   async sendBundle(txs: FlashbotsTransaction[], validBlocks: number, opts?: FlashbotsOptions) {
     if (validBlocks < 1) throw new Error(`Minimum 'validBlocks' value is 1, got ${validBlocks}`);
-    // First we define the targetBlockNumber, which is "The only block number for which the bundle is to be considered
+
+    // First we sign the bundle of transactions with our auth key
+    const signedBundle = await this.flashbotsProvider.signBundle(txs);
+
+    // Next we define the targetBlockNumbers, which are "The only block number for which the bundle is to be considered
     // valid. If you would like more than one block to be targeted, submit multiple rpc calls targeting each specific
     // block. This value should be higher than the value of getBlockNumber(). Submitting a bundle with a target block
-    // number of the current block, or earlier, is a no-op."
+    // number of the current block, or earlier, is a no-op". we use this to generate an array of:
+    //   `[currentBlockNumber+1, ..., currentBlockNumber + 1 + validBlocks]`
     const currentBlockNumber = await this.provider.getBlockNumber();
-
-    // Generate array of [currentBlockNumber+1, ..., currentBlockNumber + 1 + validBlocks]
     const targetBlocks = Array.from(Array(validBlocks).keys(), (x) => x + 1 + currentBlockNumber);
 
-    // Simulate the bundle
-    const simulation = await this.flashbotsProvider.simulate([], targetBlocks[0]);
-    if ('error' in simulation || simulation.firstRevert !== undefined) {
-      console.log('Simulation error occurred, exiting.');
+    // Simulate the bundle in the next block
+    const simulation = await this.flashbotsProvider.simulate(signedBundle, targetBlocks[0]);
+
+    // Check for errors in the simulation
+    if ('error' in simulation || simulation.firstRevert !== undefined || JSON.stringify(simulation).includes('error')) {
+      console.error('Simulation error occurred, exiting. See simulation object below for more details');
+      console.log('simulation:', simulation);
       return;
     }
 
-    // Send the bundle
-    const bundlePromises = targetBlocks.map((blockNumber) => this.flashbotsProvider.sendBundle(txs, blockNumber, opts));
-    console.log('bundlePromises: ', bundlePromises);
+    // No errors simulating, so send the bundle
+    return targetBlocks.map((block) => this.flashbotsProvider.sendRawBundle(signedBundle, block, opts));
   }
 }

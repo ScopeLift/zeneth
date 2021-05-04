@@ -5,13 +5,13 @@
     "outDir": "build",
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2015", "dom"],
+    "lib": ["es2020", "es2015", "dom"],
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "target": "es5"
+    "target": "es2020"
   },
-  "include": ["./src/**/*", "./src/**/*.json", "./types/**/*"]
+  "include": ["./src/**/*", "./src/**/*.json", "./types/**/*", "./test/**/*"]
 }

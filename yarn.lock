@@ -2141,6 +2141,11 @@
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-6.0.5.tgz#39bbf9baadd0e8d9efad9d16c60152b7cd9a467b"
   integrity sha512-KJh+EWuxmX1a17fQWS1ba8DCYcqK7UpdbqMZZwyfiv9FQfn8ZQJX17anbkCMOSU8TV3EvRuJ/vFEKGzKnpkO8g==
 
+"@typechain/ethers-v5@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-6.0.5.tgz#39bbf9baadd0e8d9efad9d16c60152b7cd9a467b"
+  integrity sha512-KJh+EWuxmX1a17fQWS1ba8DCYcqK7UpdbqMZZwyfiv9FQfn8ZQJX17anbkCMOSU8TV3EvRuJ/vFEKGzKnpkO8g==
+
 "@typechain/hardhat@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-1.0.1.tgz#6e53956c15b2aff073413cfcdb3f5339b0a85f2e"
