@@ -52,9 +52,9 @@ export class FlashbotsRelayer {
     // valid. If you would like more than one block to be targeted, submit multiple rpc calls targeting each specific
     // block. This value should be higher than the value of getBlockNumber(). Submitting a bundle with a target block
     // number of the current block, or earlier, is a no-op". we use this to generate an array of:
-    //   `[currentBlockNumber+1, ..., currentBlockNumber + 1 + validBlocks]`
+    //   `[currentBlockNumber + 1, ..., currentBlockNumber + 1 + validBlocks]`
     const currentBlockNumber = await this.provider.getBlockNumber();
-    const targetBlocks = Array.from(Array(validBlocks).keys(), (x) => x + 1 + currentBlockNumber);
+    const targetBlocks = getIncrementingArray(validBlocks, currentBlockNumber + 1);
 
     // Simulate the bundle in the next block
     const simulation = await this.flashbotsProvider.simulate(signedBundle, targetBlocks[0]);
@@ -69,3 +69,14 @@ export class FlashbotsRelayer {
     return targetBlocks.map((block) => this.flashbotsProvider.sendRawBundle(signedBundle, block, opts));
   }
 }
+
+// ==================== Helper methods ====================
+
+// Generates an array of length `length` starting with value `startValue` with each element incremented by 1
+const getIncrementingArray = (length: number, startValue: number) => {
+  // Create empty array of length `length` and get the keys of that array
+  const keys = Array(length).keys(); // e.g. if length is 3 this is [0, 1, 2]
+  // `Array.from(x, mapFunction)` creates an array from array `x` but maps the values according to `mapFunction`.
+  // So we map element `i` in the array to block number to `i + startValue`
+  return Array.from(keys, (x) => x + startValue);
+};
