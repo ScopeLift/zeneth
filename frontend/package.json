@@ -18,10 +18,14 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "swr": "^0.5.5",
-    "tailwindcss": "^2.1.1",
     "web3-react": "^5.0.5"
   },
   "devDependencies": {
+    "@types/react": "^17.0.4",
+    "@types/react-dom": "^17.0.3",
+    "autoprefixer": "^10.2.5",
+    "postcss": "^8.2.13",
+    "tailwindcss": "^2.1.2",
     "typescript": "^4.2.4"
   },
   "volta": {
