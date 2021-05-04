@@ -7,7 +7,7 @@ import { SwapBriber, TestToken, MockWETH } from '../typechain';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { parseEther } from '@ethersproject/units';
-import { Contract } from "@ethersproject/contracts";
+import { Contract } from '@ethersproject/contracts';
 
 const { deployContract } = hre.waffle;
 
@@ -61,13 +61,10 @@ describe('SwapBriber', () => {
     weth = (await deployContract(admin, mockWethArtifact, [])) as MockWETH;
     expect(isAddress(weth.address), 'Failed to deploy MockWETH').to.be.true;
 
-    uniswapFactory = (await deployContract(admin, UniswapV2FactoryArtifact, [admin.address]));
+    uniswapFactory = await deployContract(admin, UniswapV2FactoryArtifact, [admin.address]);
     expect(isAddress(uniswapFactory.address), 'Failed to deploy Uniswap Factory').to.be.true;
 
-    uniswapRouter = (await deployContract(admin, UniswapV2Router02Artifact, [
-      uniswapFactory.address,
-      weth.address,
-    ]));
+    uniswapRouter = await deployContract(admin, UniswapV2Router02Artifact, [uniswapFactory.address, weth.address]);
     expect(isAddress(uniswapRouter.address), 'Failed to deploy Uniswap Router').to.be.true;
   });
 
@@ -102,7 +99,7 @@ describe('SwapBriber', () => {
         bribeEth,
         uniswapRouter.address,
         [token.address, weth.address],
-        farFuture,
+        farFuture
       );
 
     const briberBalance = await token.balanceOf(briber.address);
@@ -138,7 +135,7 @@ describe('SwapBriber', () => {
         bribeEth,
         uniswapRouter.address,
         [token.address, weth.address],
-        farFuture,
+        farFuture
       );
 
     const briberBalance = await token.balanceOf(briber.address);
