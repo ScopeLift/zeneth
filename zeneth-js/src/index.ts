@@ -61,9 +61,8 @@ export class FlashbotsRelayer {
 
     // Check for errors in the simulation
     if ('error' in simulation || simulation.firstRevert !== undefined || JSON.stringify(simulation).includes('error')) {
-      console.error('Simulation error occurred, exiting. See simulation object below for more details');
       console.log('simulation:', simulation);
-      return;
+      throw new Error('Simulation error occurred, exiting. See simulation object for more details');
     }
 
     // No errors simulating, so send the bundle
