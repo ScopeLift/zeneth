@@ -24,13 +24,8 @@
     "clean": "lerna run clean",
     "lint": "lerna run lint",
     "prettier": "lerna run prettier",
-    "prepare": "lerna run prepare",
+    "prepare": "husky install",
     "test": "lerna run test"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lerna run --concurrency 1 precommit"
-    }
   },
   "volta": {
     "node": "14.16.1",
