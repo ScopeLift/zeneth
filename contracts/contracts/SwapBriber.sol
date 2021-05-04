@@ -25,7 +25,7 @@ contract SwapBriber {
         // contract should never hold a token balance. All tokens transfered in this method are
         // immediately swapped. If the assumption that this contract will never hold a balance
         // isn't broken, then there shouldn't be a risk.
-        if (_token.allowance(address(this), address(_router)) == 0) {
+        if (_token.allowance(address(this), address(_router)) < _tokenAmount) {
             _callOptionalReturn(
                 _token,
                 abi.encodeWithSelector(_token.approve.selector, address(_router), type(uint256).max)
