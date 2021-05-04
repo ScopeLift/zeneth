@@ -60,7 +60,7 @@ describe('Flashbots relayer', () => {
     });
   });
 
-  describe.only('Usages', () => {
+  describe('Usages', () => {
     let zenethRelayer: ZenethRelayer;
     const transferAmount = 100n * 10n ** 18n; // 100 DAI
     const feeAmount = 25n * 10n ** 18n; // 25 DAI
@@ -74,97 +74,159 @@ describe('Flashbots relayer', () => {
       expect(await dai.balanceOf(user.address)).to.be.above(0);
     });
 
-    it('sends simple bundle where user sends tokens and relayer pays ETH', async () => {
-      // Get nonce of the first transaction
-      let nonce = await goerliProvider.getTransactionCount(user.address);
+    describe('Sends bundles', () => {
+      it('sends simple bundle where user sends tokens and relayer pays ETH', async () => {
+        // Get nonce of the first transaction
+        let nonce = await goerliProvider.getTransactionCount(user.address);
 
-      // TRANSACTION 1
-      // User signs transaction to send DAI to arbitrary recipient
-      const recipient = Wallet.createRandom(); // random recipient simplifies testing since balance will be 0
-      const transferData = dai.interface.encodeFunctionData('transfer', [recipient.address, transferAmount]);
-      const tx1 = {
-        chainId,
-        data: transferData,
-        from: user.address,
-        gasLimit: BigNumber.from('250000'),
-        gasPrice: Zero,
-        nonce,
-        to: dai.address,
-        value: Zero,
-      };
-      const sig1 = await user.signTransaction(tx1);
-      nonce += 1; // must track nonce manually
+        // TRANSACTION 1
+        // User signs transaction to send DAI to arbitrary recipient
+        const recipient = Wallet.createRandom(); // random recipient simplifies testing since balance will be 0
+        const transferData = dai.interface.encodeFunctionData('transfer', [recipient.address, transferAmount]);
+        const tx1 = {
+          chainId,
+          data: transferData,
+          from: user.address,
+          gasLimit: BigNumber.from('250000'),
+          gasPrice: Zero,
+          nonce,
+          to: dai.address,
+          value: Zero,
+        };
+        const sig1 = await user.signTransaction(tx1);
+        nonce += 1; // must track nonce manually
 
-      // TRANSACTION 2
-      // User signs transaction approving SwapBribe contract to spend their DAI
-      const approveData = dai.interface.encodeFunctionData('approve', [swapAndBribe.address, MaxUint256]);
-      const tx2 = {
-        chainId,
-        data: approveData,
-        from: user.address,
-        gasLimit: BigNumber.from('250000'),
-        gasPrice: Zero,
-        nonce,
-        to: dai.address,
-        value: Zero,
-      };
-      const sig2 = await user.signTransaction(tx2);
-      nonce += 1;
+        // TRANSACTION 2
+        // User signs transaction approving SwapBribe contract to spend their DAI
+        const approveData = dai.interface.encodeFunctionData('approve', [swapAndBribe.address, MaxUint256]);
+        const tx2 = {
+          chainId,
+          data: approveData,
+          from: user.address,
+          gasLimit: BigNumber.from('250000'),
+          gasPrice: Zero,
+          nonce,
+          to: dai.address,
+          value: Zero,
+        };
+        const sig2 = await user.signTransaction(tx2);
+        nonce += 1;
 
-      // TRANSACTION 3
-      // User signs transaction approving SwapBribe contract to spend their DAI
-      const swapAndBribeData = swapAndBribe.interface.encodeFunctionData('swapAndBribe', [
-        dai.address,
-        feeAmount,
-        bribeAmount,
-        uniRouterAddress,
-        [dai.address, wethAddress], // swap path
-        '2000000000', //deadline, very far into the future
-      ]);
-      const tx3 = {
-        chainId,
-        data: swapAndBribeData,
-        from: user.address,
-        gasLimit: BigNumber.from('1000000'),
-        gasPrice: Zero,
-        nonce,
-        to: swapAndBribe.address,
-        value: Zero,
-      };
-      const sig3 = await user.signTransaction(tx3);
-      nonce += 1;
+        // TRANSACTION 3
+        // User signs transaction approving SwapBribe contract to spend their DAI
+        const swapAndBribeData = swapAndBribe.interface.encodeFunctionData('swapAndBribe', [
+          dai.address,
+          feeAmount,
+          bribeAmount,
+          uniRouterAddress,
+          [dai.address, wethAddress], // swap path
+          '2000000000', //deadline, very far into the future
+        ]);
+        const tx3 = {
+          chainId,
+          data: swapAndBribeData,
+          from: user.address,
+          gasLimit: BigNumber.from('1000000'),
+          gasPrice: Zero,
+          nonce,
+          to: swapAndBribe.address,
+          value: Zero,
+        };
+        const sig3 = await user.signTransaction(tx3);
+        nonce += 1;
 
-      // SEND BUNDLE
-      const signedTxs = [sig1, sig2, sig3].map((sig) => ({ signedTransaction: sig }));
-      const validBlocks = 5;
-      const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
-      console.log('bundlePromises', bundlePromises);
+        // SEND BUNDLE
+        const signedTxs = [sig1, sig2, sig3].map((sig) => ({ signedTransaction: sig }));
+        const validBlocks = 5;
+        const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
+        console.log('bundlePromises', bundlePromises);
+      });
+
+      it('does not send bundles with transactions that revert', async () => {
+        // Get nonce to use
+        const nonce = await goerliProvider.getTransactionCount(user.address);
+
+        // TRANSACTION
+        // Use a dai transfer
+        const transferData = dai.interface.encodeFunctionData('transfer', [user.address, transferAmount]);
+        const tx1 = {
+          chainId,
+          data: transferData,
+          from: user.address,
+          gasLimit: BigNumber.from('21000'), // but gas limit is too low
+          gasPrice: Zero,
+          nonce,
+          to: dai.address,
+          value: Zero,
+        };
+        const sig1 = await user.signTransaction(tx1);
+
+        // SEND BUNDLE
+        const errorMessage = 'Simulation error occurred, exiting. See simulation object for more details';
+        const signedTxs = [{ signedTransaction: sig1 }];
+        const validBlocks = 1;
+        await expectRejection(zenethRelayer.sendBundle(signedTxs, validBlocks), errorMessage);
+      });
     });
 
-    it('does not send bundles with transactions that revert', async () => {
-      // Get nonce to use
-      const nonce = await goerliProvider.getTransactionCount(user.address);
+    describe('Transaction signing', () => {
+      it('populates transactions', async () => {
+        // Provide a transaction with the minimum number of fields
+        const tx = { from: user.address, to: dai.address, gasLimit: '21000' };
+        const populatedTx = await zenethRelayer.populateTransaction(tx);
+        expect(populatedTx.chainId).to.equal(goerliProvider.network.chainId);
+        expect(populatedTx.data).to.equal('0x');
+        expect(populatedTx.from).to.equal(tx.from);
+        expect(populatedTx.gasPrice).to.equal(Zero);
+        expect(populatedTx.gasLimit).to.equal(tx.gasLimit);
+        expect(populatedTx.nonce).to.equal(await goerliProvider.getTransactionCount(user.address));
+        expect(populatedTx.to).to.equal(tx.to);
+        expect(populatedTx.value).to.equal(Zero);
 
-      // TRANSACTION
-      // Use a dai transfer
-      const transferData = dai.interface.encodeFunctionData('transfer', [user.address, transferAmount]);
-      const tx1 = {
-        chainId,
-        data: transferData,
-        from: user.address,
-        gasLimit: BigNumber.from('21000'), // but gas limit is too low
-        gasPrice: Zero,
-        nonce,
-        to: dai.address,
-        value: Zero,
-      };
-      const sig1 = await user.signTransaction(tx1);
+        // Provide a transaction with the maximum number of fields
+        const nonce = await goerliProvider.getTransactionCount(user.address);
+        const tx2 = { from: user.address, to: dai.address, gasLimit: '21000', nonce, value: '1', data: '0x1234' };
+        const populatedTx2 = await zenethRelayer.populateTransaction(tx2);
+        expect(populatedTx2.chainId).to.equal(goerliProvider.network.chainId);
+        expect(populatedTx2.data).to.equal(tx2.data);
+        expect(populatedTx2.from).to.equal(tx2.from);
+        expect(populatedTx2.gasPrice).to.equal(Zero);
+        expect(populatedTx2.gasLimit).to.equal(tx2.gasLimit);
+        expect(populatedTx2.nonce).to.equal(tx2.nonce);
+        expect(populatedTx2.to).to.equal(tx2.to);
+        expect(populatedTx2.value).to.equal(tx2.value);
+      });
 
-      // SEND BUNDLE
-      const errorMessage = 'Simulation error occurred, exiting. See simulation object for more details';
-      const signedTxs = [{ signedTransaction: sig1 }];
-      const validBlocks = 1;
-      await expectRejection(zenethRelayer.sendBundle(signedTxs, validBlocks), errorMessage);
+      it('populates multiple transactions at once', async () => {
+        const recipient = Wallet.createRandom();
+        const txFragment1 = {
+          data: dai.interface.encodeFunctionData('transfer', [recipient.address, transferAmount]),
+          gasLimit: '200000',
+          to: dai.address,
+          value: '0',
+        };
+        const txFragment2 = {
+          data: dai.interface.encodeFunctionData('approve', [swapAndBribe.address, MaxUint256]),
+          gasLimit: '300000',
+          to: dai.address,
+          value: '0',
+        };
+        const txFragments = [txFragment1, txFragment2];
+        const populatedTxs = await zenethRelayer.populateTransactions(user.address, txFragments);
+        console.log('populatedTxs: ', populatedTxs);
+
+        const initialNonce = await goerliProvider.getTransactionCount(user.address);
+        populatedTxs.forEach((populatedTx, index) => {
+          expect(populatedTx.chainId).to.equal(goerliProvider.network.chainId);
+          expect(populatedTx.data).to.equal(txFragments[index].data);
+          expect(populatedTx.from).to.equal(user.address);
+          expect(populatedTx.gasLimit).to.equal(txFragments[index].gasLimit);
+          expect(populatedTx.gasPrice).to.equal(Zero);
+          expect(populatedTx.nonce).to.equal(initialNonce + index);
+          expect(populatedTx.to).to.equal(txFragments[index].to);
+          expect(populatedTx.value).to.equal(txFragments[index].value);
+        });
+      });
     });
   });
 });

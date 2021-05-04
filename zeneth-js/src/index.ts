@@ -1,9 +1,10 @@
 import { resolve } from 'path';
 import { config as dotenvConfig } from 'dotenv';
+import { Zero } from '@ethersproject/constants';
 import { Wallet } from '@ethersproject/wallet';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, TransactionRequest } from '@ethersproject/providers';
 import { FlashbotsBundleProvider, FlashbotsOptions } from '@flashbots/ethers-provider-bundle';
-import { FlashbotsTransaction } from './types';
+import { FlashbotsTransaction, TransactionFragment } from './types';
 
 dotenvConfig({ path: resolve(__dirname, '../../.env') });
 
@@ -67,6 +68,56 @@ export class ZenethRelayer {
 
     // No errors simulating, so send the bundle
     return targetBlocks.map((block) => this.flashbotsProvider.sendRawBundle(signedBundle, block, opts));
+  }
+
+  /**
+   * @notice Generates the transaction object to sign
+   * @dev This function does not try to estimate gas usage because gas estimation will fail if you use a gas price
+   * of zero, and we can't use a gas price of 1 wei because we assume the sender has no ETH, so gas estimation will
+   * fail in that case too
+   */
+  async populateTransaction(tx: TransactionRequest): Promise<TransactionRequest> {
+    const { from, to, gasLimit } = tx;
+    if (!from) throw new Error("Must include 'from' field");
+    if (!to) throw new Error("Must include 'to' field");
+    if (!gasLimit) throw new Error("Must include 'gasLimit' field");
+
+    // Check if user provided values, otherwise fallback to the defaults
+    const nonce = tx.nonce || (await this.provider.getTransactionCount(from));
+    const value = tx.value || Zero;
+    const data = tx.data || '0x';
+
+    // Return transaction with chain ID and zero gas price
+    return {
+      chainId: this.provider.network.chainId,
+      data,
+      from,
+      gasLimit,
+      gasPrice: Zero,
+      nonce,
+      to,
+      value,
+    };
+  }
+
+  /**
+   * @notice Populates multiple transactions that are ready to be signed
+   * @dev Only for use case where all transactions are sent from the same user
+   * @dev This handles nonces as well, and will start with the latest nonce found in the network
+   */
+  async populateTransactions(from: string, txs: TransactionFragment[]): Promise<TransactionRequest[]> {
+    const initialNonce = await this.provider.getTransactionCount(from);
+    const promises = txs.map((tx, index) =>
+      this.populateTransaction({
+        data: tx.data,
+        from,
+        gasLimit: tx.gasLimit,
+        nonce: initialNonce + index, // increment nonce for each transaction
+        to: tx.to,
+        value: tx.value,
+      })
+    );
+    return Promise.all(promises);
   }
 }
 
