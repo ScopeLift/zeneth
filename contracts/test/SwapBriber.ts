@@ -23,6 +23,7 @@ describe('SwapBriber', () => {
   let admin: SignerWithAddress;
   let sender: SignerWithAddress;
   let lp: SignerWithAddress;
+  let sender2: SignerWithAddress;
   let token: TestToken;
   let briber: SwapBriber;
   let weth: MockWeth;
@@ -44,7 +45,7 @@ describe('SwapBriber', () => {
   const bribeEth = tokenPrice.mul(bribeTokens).div(100).mul(95);
 
   before(async () => {
-    [admin, sender, lp] = await hre.ethers.getSigners();
+    [admin, sender, lp, sender2] = await hre.ethers.getSigners();
   });
 
   it('should deploy', async () => {
@@ -117,5 +118,39 @@ describe('SwapBriber', () => {
     const coinbaseBribe = minerBalance.sub(blockRewards);
 
     expect(coinbaseBribe.eq(bribeEth), 'Failed to pay coinbase bribe').to.be.true;
+  });
+
+  it('should do a second swap and bribe', async () => {
+    // mint tokens
+    await token.mint(sender2.address, bribeTokens);
+    const senderBalance = await token.balanceOf(sender2.address);
+    expect(senderBalance.eq(bribeTokens), 'Failed to mint tokens').to.be.true;
+
+    await token.connect(sender2).approve(briber.address, bribeTokens);
+
+    const tx = await briber
+      .connect(sender2)
+      .swapAndBribe(
+        token.address,
+        bribeTokens,
+        bribeEth,
+        uniswapRouter.address,
+        [token.address, weth.address],
+        farFuture,
+      );
+
+    const briberBalance = await token.balanceOf(briber.address);
+    expect(briberBalance.eq(0), 'Failed to trade tokens').to.be.true;
+
+    const briberProfit = await ethers.provider.getBalance(briber.address);
+    expect(briberProfit.gt(0), 'Failed to profit from swap').to.be.true;
+
+    // Again, calculate the miner rewards
+    const blockRewards = parseEther(String(BLOCK_REWARD * tx.blockNumber!));
+    const block = await ethers.provider.getBlock(tx.blockNumber!);
+    const minerBalance = await ethers.provider.getBalance(block.miner);
+    const coinbaseBribe = minerBalance.sub(blockRewards);
+
+    expect(coinbaseBribe.eq(bribeEth.mul(2)), 'Failed to pay coinbase bribe').to.be.true;
   });
 });
