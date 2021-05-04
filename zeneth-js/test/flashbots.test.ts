@@ -141,7 +141,31 @@ describe('Flashbots relayer', () => {
       console.log('bundlePromises', bundlePromises);
     });
 
-    it('does not send bundles with transactions that revert');
+    it('does not send bundles with transactions that revert', async () => {
+      // Get nonce to use
+      const nonce = await goerliProvider.getTransactionCount(user.address);
+
+      // TRANSACTION
+      // Use a dai transfer
+      const transferData = dai.interface.encodeFunctionData('transfer', [user.address, transferAmount]);
+      const tx1 = {
+        chainId,
+        data: transferData,
+        from: user.address,
+        gasLimit: BigNumber.from('21000'), // but gas limit is too low
+        gasPrice: Zero,
+        nonce,
+        to: dai.address,
+        value: Zero,
+      };
+      const sig1 = await user.signTransaction(tx1);
+
+      // SEND BUNDLE
+      const errorMessage = 'Simulation error occurred, exiting. See simulation object for more details';
+      const signedTxs = [{ signedTransaction: sig1 }];
+      const validBlocks = 1;
+      await expectRejection(zenethRelayer.sendBundle(signedTxs, validBlocks), errorMessage);
+    });
   });
 });
 
