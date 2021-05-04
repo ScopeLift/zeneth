@@ -3,7 +3,7 @@ const { isAddress, parseUnits } = ethers.utils;
 import { Artifact } from 'hardhat/types';
 
 //import { SwapBriber, TestToken, MockWeth, IUniswapV2Factory, IUniswapV2Router02 } from '../typechain';
-import { SwapBriber, TestToken, MockWeth } from '../typechain';
+import { SwapBriber, TestToken, MockWETH } from '../typechain';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { parseEther } from '@ethersproject/units';
@@ -26,7 +26,7 @@ describe('SwapBriber', () => {
   let sender2: SignerWithAddress;
   let token: TestToken;
   let briber: SwapBriber;
-  let weth: MockWeth;
+  let weth: MockWETH;
   // let uniswapFactory: IUniswapV2Factory;
   // let uniswapRouter: IUniswapV2Router02;
   let uniswapFactory: Contract;
@@ -58,7 +58,7 @@ describe('SwapBriber', () => {
     expect(isAddress(token.address), 'Failed to deploy TestToken').to.be.true;
 
     const mockWethArtifact: Artifact = await hre.artifacts.readArtifact('MockWETH');
-    weth = (await deployContract(admin, mockWethArtifact, [])) as MockWeth;
+    weth = (await deployContract(admin, mockWethArtifact, [])) as MockWETH;
     expect(isAddress(weth.address), 'Failed to deploy MockWETH').to.be.true;
 
     uniswapFactory = (await deployContract(admin, UniswapV2FactoryArtifact, [admin.address]));
