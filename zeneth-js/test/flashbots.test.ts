@@ -53,9 +53,10 @@ describe('Flashbots relayer', () => {
       expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(GOERLI_RELAY_URL);
     });
 
-    it('throws if initialized with an unsupported network', async () => {
+    it('throws if initialized with an unsupported network', () => {
       const rinkebyProviderUrl = `https://rinkeby.infura.io/v3/${infuraId}`;
       const rinkebyProvider = new JsonRpcProvider(rinkebyProviderUrl);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       expectRejection(ZenethRelayer.create(rinkebyProvider), 'Unsupported network');
     });
   });
