@@ -36,7 +36,7 @@ contract SwapBriber {
         block.coinbase.transfer(_ethBribe);
     }
 
-    fallback() external payable { }
+    receive() external payable { }
 
     /**
      * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
