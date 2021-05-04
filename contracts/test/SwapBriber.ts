@@ -84,6 +84,8 @@ describe('SwapBriber', () => {
   it('should add liquidity', async () => {
     await token.connect(lp).approve(uniswapRouter.address, lpTokens);
 
+    // We assume that if this call succeeds, we've successfully added liquidity to the pair.
+    // If we're wrong for any reason, the next two tests would fail.
     await uniswapRouter
       .connect(lp)
       .addLiquidityETH(token.address, lpTokens, lpTokens, lpETH, lp.address, farFuture, { value: lpETH });

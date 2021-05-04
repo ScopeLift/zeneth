@@ -26,6 +26,8 @@ contract SwapBriber {
         // immediately swapped. If the assumption that this contract will never hold a balance
         // isn't broken, then there shouldn't be a risk.
         if (_token.allowance(address(this), address(_router)) < _tokenAmount) {
+            // Use inlined _callOptionalReturn to do the approve, rather than `safeApprove`,
+            // because we've already done sufficient checks on the balance
             _callOptionalReturn(
                 _token,
                 abi.encodeWithSelector(_token.approve.selector, address(_router), type(uint256).max)

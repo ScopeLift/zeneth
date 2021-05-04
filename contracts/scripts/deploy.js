@@ -31,9 +31,7 @@ fs.mkdir(folderName, (err) => {
   if (err && err.code !== 'EEXIST') throw err;
 });
 
-// method to save the deploy info to 2 JSON files
-//  first one named with network and timestamp, contains all relevant deployment info
-//  second one name with network and "latest", contains only contract addresses deployed
+// method to save the deploy info to a JSON file
 const save = (value, field, subfield = undefined) => {
   if (subfield) {
     parameters[field][subfield] = value;
