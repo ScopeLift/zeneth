@@ -4,7 +4,7 @@ import { Zero, MaxUint256 } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
-import { FlashbotsRelayer } from '../src/index';
+import { ZenethRelayer } from '../src/index';
 import * as ERC20Abi from '../src/abi/ERC20.json';
 import * as SwapBriberAbi from '../src/abi/SwapBriber.json';
 
@@ -42,33 +42,33 @@ const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
 describe('Flashbots relayer', () => {
   describe('Initialization', () => {
     it('initializes a relayer instance with mainnet as the default', async () => {
-      const flashbotsRelayer = await FlashbotsRelayer.create(mainnetProvider);
-      expect(flashbotsRelayer.provider.connection.url).to.equal(mainnetProviderUrl);
-      expect(flashbotsRelayer.flashbotsProvider.connection.url).to.equal('https://relay.flashbots.net');
+      const zenethRelayer = await ZenethRelayer.create(mainnetProvider);
+      expect(zenethRelayer.provider.connection.url).to.equal(mainnetProviderUrl);
+      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal('https://relay.flashbots.net');
     });
 
     it('initializes a relayer instance against a Goerli', async () => {
-      const flashbotsRelayer = await FlashbotsRelayer.create(goerliProvider);
-      expect(flashbotsRelayer.provider.connection.url).to.equal(goerliProviderUrl);
-      expect(flashbotsRelayer.flashbotsProvider.connection.url).to.equal(GOERLI_RELAY_URL);
+      const zenethRelayer = await ZenethRelayer.create(goerliProvider);
+      expect(zenethRelayer.provider.connection.url).to.equal(goerliProviderUrl);
+      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(GOERLI_RELAY_URL);
     });
 
     it('throws if initialized with an unsupported network', async () => {
       const rinkebyProviderUrl = `https://rinkeby.infura.io/v3/${infuraId}`;
       const rinkebyProvider = new JsonRpcProvider(rinkebyProviderUrl);
-      expectRejection(FlashbotsRelayer.create(rinkebyProvider), 'Unsupported network');
+      expectRejection(ZenethRelayer.create(rinkebyProvider), 'Unsupported network');
     });
   });
 
   describe.only('Usages', () => {
-    let flashbotsRelayer: FlashbotsRelayer;
+    let zenethRelayer: ZenethRelayer;
     const transferAmount = 100n * 10n ** 18n; // 100 DAI
     const feeAmount = 25n * 10n ** 18n; // 25 DAI
     const bribeAmount = 1n * 10n ** 15n; // 0.001 ETH (must be less than feeAmount/ethPrice)
     let chainId: number;
 
     beforeEach(async () => {
-      flashbotsRelayer = await FlashbotsRelayer.create(goerliProvider);
+      zenethRelayer = await ZenethRelayer.create(goerliProvider);
       ({ chainId } = await goerliProvider.getNetwork());
       expect(await goerliProvider.getBalance(user.address)).to.equal(0);
       expect(await dai.balanceOf(user.address)).to.be.above(0);
@@ -137,7 +137,7 @@ describe('Flashbots relayer', () => {
       // SEND BUNDLE
       const signedTxs = [sig1, sig2, sig3].map((sig) => ({ signedTransaction: sig }));
       const validBlocks = 5;
-      const bundlePromises = await flashbotsRelayer.sendBundle(signedTxs, validBlocks);
+      const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
       console.log('bundlePromises', bundlePromises);
     });
 

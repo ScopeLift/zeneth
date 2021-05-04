@@ -17,11 +17,11 @@ const authSigner = new Wallet(authPrivateKey);
 // Define constants
 const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
 
-export class FlashbotsRelayer {
+export class ZenethRelayer {
   constructor(readonly provider: JsonRpcProvider, readonly flashbotsProvider: FlashbotsBundleProvider) {}
 
   /**
-   * @notice Returns a new FlashbotsRelayer instance
+   * @notice Returns a new ZenethRelayer instance
    */
   static async create(provider: JsonRpcProvider) {
     const chainId = (await provider.getNetwork()).chainId;
@@ -31,9 +31,9 @@ export class FlashbotsRelayer {
     if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
     const relayUrl = chainId === 1 ? undefined : GOERLI_RELAY_URL;
 
-    // Return new FlashbotsRelayer instance
+    // Return new ZenethRelayer instance
     const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner, relayUrl);
-    return new FlashbotsRelayer(provider, flashbotsProvider);
+    return new ZenethRelayer(provider, flashbotsProvider);
   }
 
   /**
