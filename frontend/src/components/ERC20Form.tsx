@@ -34,15 +34,13 @@ const L2Form = () => {
           <label className={label}>Recipient</label>
           <input className={inputStyle} />
         </div>
-        <div className={`${formGroup} flex flex-row`}>
-          <div className="flex flex-row">
-            <label className={label}>Amount</label>
-            <input className={inputStyle} />
-          </div>
-          <div className="flex flex-row">
-            <label className={label}>Miner Fee</label>
-            <input className={inputStyle} />
-          </div>
+        <div className={formGroup}>
+          <label className={label}>Amount</label>
+          <input className={inputStyle} />
+        </div>
+        <div className={formGroup}>
+          <label className={label}>Miner Fee</label>
+          <input className={inputStyle} />
         </div>
         <button onClick={doSubmit}>Submit</button>
       </form>
@@ -51,10 +49,12 @@ const L2Form = () => {
 };
 
 const TokenListbox = ({ supportedTokens }: { supportedTokens: TokenInfo[] }) => {
-  const [selectedToken, setSelectedToken] = useState(supportedTokens[0]);
+  const [selectedToken, setSelectedToken] = useState<TokenInfo>();
   return (
     <Listbox value={selectedToken} onChange={setSelectedToken}>
-      <Listbox.Button className={inputStyle}>{selectedToken?.name || 'Select Token'}:</Listbox.Button>
+      <Listbox.Button className={inputStyle}>
+        {selectedToken ? `${selectedToken.symbol} (${selectedToken.address})` : 'Select Token'}
+      </Listbox.Button>
       <Listbox.Options>
         {supportedTokens.map((token) => (
           <Listbox.Option key={token.address} value={token} as={Fragment}>
