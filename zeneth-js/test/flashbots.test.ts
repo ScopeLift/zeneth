@@ -137,10 +137,19 @@ describe('Flashbots relayer', () => {
         nonce += 1;
 
         // SEND BUNDLE
-        const signedTxs = [sig1, sig2, sig3].map((sig) => ({ signedTransaction: sig }));
+        const signedTxs = [sig1, sig2, sig3];
         const validBlocks = 5;
         const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
         console.log('bundlePromises', bundlePromises);
+        const responses = await Promise.all(bundlePromises);
+        const results = responses.map((res) => res.wait());
+
+        // TODO handle bundle promises better
+        console.log('w0: ', await results[0]);
+        console.log('w1: ', await results[1]);
+        console.log('w2: ', await results[2]);
+        console.log('w3: ', await results[3]);
+        console.log('w4: ', await results[4]);
       });
 
       it('does not send bundles with transactions that revert', async () => {
@@ -164,7 +173,7 @@ describe('Flashbots relayer', () => {
 
         // SEND BUNDLE
         const errorMessage = 'Simulation error occurred, exiting. See simulation object for more details';
-        const signedTxs = [{ signedTransaction: sig1 }];
+        const signedTxs = [sig1];
         const validBlocks = 1;
         await expectRejection(zenethRelayer.sendBundle(signedTxs, validBlocks), errorMessage);
       });
@@ -177,7 +186,6 @@ describe('Flashbots relayer', () => {
         const populatedTx = await zenethRelayer.populateTransaction(tx);
         expect(populatedTx.chainId).to.equal(goerliProvider.network.chainId);
         expect(populatedTx.data).to.equal('0x');
-        expect(populatedTx.from).to.equal(tx.from);
         expect(populatedTx.gasPrice).to.equal(Zero);
         expect(populatedTx.gasLimit).to.equal(tx.gasLimit);
         expect(populatedTx.nonce).to.equal(await goerliProvider.getTransactionCount(user.address));
@@ -190,7 +198,6 @@ describe('Flashbots relayer', () => {
         const populatedTx2 = await zenethRelayer.populateTransaction(tx2);
         expect(populatedTx2.chainId).to.equal(goerliProvider.network.chainId);
         expect(populatedTx2.data).to.equal(tx2.data);
-        expect(populatedTx2.from).to.equal(tx2.from);
         expect(populatedTx2.gasPrice).to.equal(Zero);
         expect(populatedTx2.gasLimit).to.equal(tx2.gasLimit);
         expect(populatedTx2.nonce).to.equal(tx2.nonce);
@@ -214,19 +221,37 @@ describe('Flashbots relayer', () => {
         };
         const txFragments = [txFragment1, txFragment2];
         const populatedTxs = await zenethRelayer.populateTransactions(user.address, txFragments);
-        console.log('populatedTxs: ', populatedTxs);
 
         const initialNonce = await goerliProvider.getTransactionCount(user.address);
         populatedTxs.forEach((populatedTx, index) => {
           expect(populatedTx.chainId).to.equal(goerliProvider.network.chainId);
           expect(populatedTx.data).to.equal(txFragments[index].data);
-          expect(populatedTx.from).to.equal(user.address);
           expect(populatedTx.gasLimit).to.equal(txFragments[index].gasLimit);
           expect(populatedTx.gasPrice).to.equal(Zero);
           expect(populatedTx.nonce).to.equal(initialNonce + index);
           expect(populatedTx.to).to.equal(txFragments[index].to);
           expect(populatedTx.value).to.equal(txFragments[index].value);
         });
+      });
+
+      it('signs transactions correctly', async () => {
+        const recipient = Wallet.createRandom();
+        const nonce = await goerliProvider.getTransactionCount(user.address);
+
+        // Approach 1, using signTransaction (MetaMask doesn't allow this)
+        const tx1 = {
+          chainId,
+          data: dai.interface.encodeFunctionData('transfer', [recipient.address, transferAmount]),
+          gasLimit: BigNumber.from('250000'),
+          gasPrice: Zero,
+          nonce,
+          to: dai.address,
+          value: Zero,
+        };
+        const sig1 = await user.signTransaction(tx1);
+        console.log('sig1: ', sig1);
+
+        // TODO manually verify against signing with MetaMask and hardcode that signature here to compare against sig1
       });
     });
   });
