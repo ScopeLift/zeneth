@@ -70,8 +70,14 @@ describe('Flashbots relayer', () => {
     beforeEach(async () => {
       zenethRelayer = await ZenethRelayer.create(goerliProvider);
       ({ chainId } = await goerliProvider.getNetwork());
+
+      // Verify user has no ETH
       expect(await goerliProvider.getBalance(user.address)).to.equal(0);
-      expect(await dai.balanceOf(user.address)).to.be.above(0);
+
+      // Verify user has sufficient DAI balance before each test
+      const minBalance = transferAmount + feeAmount;
+      const userBalance = await dai.balanceOf(user.address);
+      expect(userBalance.gt(minBalance), 'Please mint more Goerli DAI to the user to continue with testing').to.be.true;
     });
 
     describe('Sends bundles', () => {
