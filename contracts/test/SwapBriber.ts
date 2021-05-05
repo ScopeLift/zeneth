@@ -1,4 +1,5 @@
 import hre, { ethers } from 'hardhat';
+const { provider } = ethers;
 const { isAddress, parseUnits } = ethers.utils;
 import { Artifact } from 'hardhat/types';
 
@@ -24,6 +25,8 @@ describe('SwapBriber', () => {
   let sender: SignerWithAddress;
   let lp: SignerWithAddress;
   let sender2: SignerWithAddress;
+  let receiver: SignerWithAddress;
+  let sweeper: SignerWithAddress;
   let token: TestToken;
   let briber: SwapBriber;
   let weth: MockWETH;
@@ -45,12 +48,12 @@ describe('SwapBriber', () => {
   const bribeEth = tokenPrice.mul(bribeTokens).div(100).mul(95);
 
   before(async () => {
-    [admin, sender, lp, sender2] = await hre.ethers.getSigners();
+    [admin, sender, lp, sender2, receiver, sweeper] = await hre.ethers.getSigners();
   });
 
   it('should deploy', async () => {
     const swapBriberArtifact: Artifact = await hre.artifacts.readArtifact('SwapBriber');
-    briber = (await deployContract(admin, swapBriberArtifact, [])) as SwapBriber;
+    briber = (await deployContract(admin, swapBriberArtifact, [receiver.address, sweeper.address])) as SwapBriber;
     expect(isAddress(briber.address), 'Failed to deploy SwapBriber').to.be.true;
 
     const testTokenArtifact: Artifact = await hre.artifacts.readArtifact('TestToken');
@@ -151,5 +154,19 @@ describe('SwapBriber', () => {
     const coinbaseBribe = minerBalance.sub(blockRewards);
 
     expect(coinbaseBribe.eq(bribeEth.mul(2)), 'Failed to pay coinbase bribe').to.be.true;
+  });
+
+  it('should sweep eth profits to the receiver', async () => {
+    const receiverBeforeBalance = await provider.getBalance(receiver.address);
+    const briberBeforeBalance = await provider.getBalance(briber.address);
+
+    await briber.connect(sweeper).sweepEth();
+
+    const receiverAfterBalance = await provider.getBalance(receiver.address);
+    const briberAterBalance = await provider.getBalance(briber.address);
+
+    expect(briberAterBalance.eq(0), 'Failed to sweep from briber').to.be.true;
+    expect(receiverAfterBalance.sub(receiverBeforeBalance).eq(briberBeforeBalance), 'Failed to sweep to receiver').to.be
+      .true;
   });
 });
