@@ -63,4 +63,19 @@ describe('EthSweepable', () => {
     const receiverBalance = await provider.getBalance(receiver.address);
     expect(receiverBalance.eq(sendAmount), 'Failed to sweep to receiver').to.be.true;
   });
+
+  after(async () => {
+    const otherBalance = await provider.getBalance(other.address);
+
+    // Send half the other's balance back to the receiver. We do this because when
+    // running the full test suite, other tests now fail because the receiver account's
+    // balance is still zero after these tests
+    await other.sendTransaction({
+      to: receiver.address,
+      value: otherBalance.div(2),
+    });
+
+    const receiverBalance = await provider.getBalance(receiver.address);
+    expect(receiverBalance.gt(0), 'Failed to send back to receiver').to.be.true;
+  });
 });
