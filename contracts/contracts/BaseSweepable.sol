@@ -30,4 +30,9 @@ contract BaseSweepable is Ownable {
     require(_addr != address(0), "BaseSweepable: Invalid 0-Addr");
     _;
   }
+
+  modifier onlySweeper() {
+    require(msg.sender == sweeper, "BaseSweepable: Not Sweeper");
+    _;
+  }
 }
