@@ -7,6 +7,8 @@ import { Wallet } from '@ethersproject/wallet';
 import { ZenethRelayer } from '../src/index';
 import * as ERC20Abi from '../src/abi/ERC20.json';
 import * as SwapBriberAbi from '../src/abi/SwapBriber.json';
+// @ts-ignore This is not under the workspace rootDir, but that's fine
+import * as DeployInfo from '../../contracts/deploy-history/goerli-latest.json';
 
 // Verify environment variables
 const infuraId = process.env.INFURA_ID;
@@ -30,11 +32,8 @@ const dai = new Contract('0xCdC50DB037373deaeBc004e7548FA233B3ABBa57', ERC20Abi,
 // Setup account of user that has no ETH. This is a random account that was given Goerli testnet tokens and no ETH
 const user = new Wallet('0x6eea9d8bafc2440aa2fb29533f9139b2cce891c89d6088bc74517ea1fbbaf7df', goerliProvider); // address: 0x47550514d0Ed597413ae944e25A62B4bFE28aD55
 
-// Setup account of relayer that will pay ETH
-// const relayer = new Wallet('0x764508aa9a1c3b31e5e959468fa400ed34db678d0f5b94907fde260fede7e5dc', goerliProvider); // address: 0xe6AEd8FD1FBcb0868FFfFA9025607Ea020C2fA98
-
 // Define address of our swapAndBribe contract
-const swapAndBribe = new Contract('0x264063408fD1bdC703083AE083c813240A024B7f', SwapBriberAbi, goerliProvider);
+const swapAndBribe = new Contract(DeployInfo.contracts.SwapBriber, SwapBriberAbi, goerliProvider);
 
 // Define constants
 const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
