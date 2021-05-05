@@ -10,8 +10,7 @@ contract BaseSweepable is Ownable {
   event SetSweepReceiver(address indexed oldReceiver, address indexed newReceiver);
   event SetSweeper(address indexed oldSweeper, address indexed newReceiver);
 
-  constructor(address payable _sweepReceiver, address _sweeper) {
-    require(_sweepReceiver != address(0) && _sweeper != address(0), "BaseSweepable: Invalid 0-Addr deploy param");
+  constructor(address payable _sweepReceiver, address _sweeper) nonZero(_sweepReceiver) nonZero(_sweeper) {
     sweepReceiver = _sweepReceiver;
     sweeper = _sweeper;
   }
