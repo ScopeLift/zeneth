@@ -17,9 +17,9 @@ const network = process.env.HARDHAT_NETWORK;
 // Initialize object that will hold all deploy info. We'll continually update this and save it to
 // a file using the save() method below
 const parameters = {
-  admin: null,
-  contracts: {}, // will be populated with all contract addresses
+  accounts: {}, // will populated with relevant account addresses
   actions: {}, // will be populated with deployment actions
+  contracts: {}, // will be populated with all contract addresses
 };
 
 // Setup for saving off deploy info to JSON files
@@ -57,11 +57,25 @@ const save = (value, field, subfield = undefined) => {
     save(network, 'actions', 'DeployingContractsToNetwork');
 
     const [adminWallet] = await ethers.getSigners();
-    save(adminWallet.address, 'admin');
+    save(adminWallet.address, 'accounts', 'owner');
+
+    const { sweepReceiver, sweeper } = deployParamsForNetwork;
+
+    if (!sweepReceiver || !sweeper) {
+      console.log('Missing deploy parameter');
+      save('Missing deploy parameter', 'actions', 'Error');
+      exit();
+    }
+
+    save(sweepReceiver, 'accounts', 'sweepReceiver');
+    save(sweeper, 'accounts', 'sweeper');
 
     // deploy the SwapBriber contract
     const SwapBriber = await ethers.getContractFactory('SwapBriber', adminWallet);
-    const swapBriber = await SwapBriber.deploy();
+    const swapBriber = await SwapBriber.deploy(
+      sweepReceiver,
+      sweeper,
+    );
     await swapBriber.deployed();
     save(swapBriber.address, 'contracts', 'SwapBriber');
     console.log('SwapBriber contract deployed to address: ', swapBriber.address);
