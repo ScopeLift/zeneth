@@ -1,4 +1,10 @@
+const { config } = require('dotenv');
+config('./.env');
+
 module.exports = {
+  env: {
+    INFURA_ID: process.env.INFURA_ID,
+  },
   future: {
     webpack5: true,
   },
