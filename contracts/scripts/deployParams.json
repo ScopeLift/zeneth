@@ -3,6 +3,10 @@
     "sweepReceiver": "0xAECB788f2Da88240e78C5B9BedE63E7192ECED23",
     "sweeper": "0x91C727F6E9feA86A8DC968333c16f615c5603c8a"
   },
+  "mainnet": {
+    "sweepReceiver": "0x8f5906963Ae276E1631EFA8Ff1a9CaE6499EC5E3",
+    "sweeper": "0x8f5906963Ae276E1631EFA8Ff1a9CaE6499EC5E3"
+  },
   "localhost": {
     "sweepReceiver": "0xAECB788f2Da88240e78C5B9BedE63E7192ECED23",
     "sweeper": "0x91C727F6E9feA86A8DC968333c16f615c5603c8a"

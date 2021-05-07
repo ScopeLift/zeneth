@@ -1,0 +1,9 @@
+{
+  "accounts": {
+    "owner": "0x60A5dcB2fC804874883b797f37CbF1b0582ac2dD",
+    "sweepReceiver": "0x8f5906963Ae276E1631EFA8Ff1a9CaE6499EC5E3",
+    "sweeper": "0x8f5906963Ae276E1631EFA8Ff1a9CaE6499EC5E3"
+  },
+  "actions": { "DeployingContractsToNetwork": "mainnet" },
+  "contracts": { "SwapBriber": "0xC5335682964ED0667F8706d8783098664F69BB0a" }
+}
