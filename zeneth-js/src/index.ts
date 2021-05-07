@@ -1,11 +1,13 @@
 import { resolve } from 'path';
 import { config as dotenvConfig } from 'dotenv';
 import { getAddress } from '@ethersproject/address';
+import { arrayify, hexlify, splitSignature } from '@ethersproject/bytes';
 import { Zero } from '@ethersproject/constants';
-import { JsonRpcProvider, TransactionRequest } from '@ethersproject/providers';
-import { serialize, UnsignedTransaction } from '@ethersproject/transactions';
+import { JsonRpcProvider, TransactionRequest, Web3Provider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
 import { FlashbotsBundleProvider, FlashbotsOptions } from '@flashbots/ethers-provider-bundle';
+import { TransactionFactory } from '@ethereumjs/tx';
+import Common from '@ethereumjs/common';
 import { TransactionFragment } from './types';
 
 dotenvConfig({ path: resolve(__dirname, '../../.env') });
@@ -21,7 +23,11 @@ const authSigner = new Wallet(authPrivateKey);
 const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
 
 export class ZenethRelayer {
-  constructor(readonly provider: JsonRpcProvider, readonly flashbotsProvider: FlashbotsBundleProvider) {}
+  constructor(
+    readonly provider: JsonRpcProvider,
+    readonly flashbotsProvider: FlashbotsBundleProvider,
+    readonly common: Common
+  ) {}
 
   /**
    * @notice Returns a new ZenethRelayer instance
@@ -34,9 +40,11 @@ export class ZenethRelayer {
     if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
     const relayUrl = chainId === 1 ? undefined : GOERLI_RELAY_URL;
 
+    const common = new Common({ chain: chainId });
+
     // Return new ZenethRelayer instance
     const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner, relayUrl);
-    return new ZenethRelayer(provider, flashbotsProvider);
+    return new ZenethRelayer(provider, flashbotsProvider, common);
   }
 
   /**
@@ -92,18 +100,35 @@ export class ZenethRelayer {
    * @param from The user sending the transactions
    * @param txs Array of objects containing the data, gasLimit, to, and value for each transaction
    */
-  async signBundle(from: string, txs: TransactionFragment[]) {
+  async signBundle(from: string, txs: TransactionFragment[], provider: Web3Provider) {
     // Get our transactions to sign
     const populatedTransactions = await this.populateTransactions(from, txs);
 
-    // Prompt the user to sign each and return the signatures
-    // TODO finish and test this
-    const promises = populatedTransactions.map((tx) => {
-      const serializedTx = serialize(tx as UnsignedTransaction);
-      // TODO fallback to personal_sign if eth_sign is not supported?
-      return this.provider.send('eth_sign', [serializedTx]);
-    });
-    return Promise.all(promises) as Promise<string[]>;
+    // Prepare to sign
+    // If ethers detects MetaMask, it will replace eth_sign with personal_sign. This is a problem because personal_sign
+    // adds a message prefix, but eth_sign does not. This means personal_sign CANNOT be used to sign a transaction
+    // manually (i.e. bypassing MetaMask's lack of support for eth_signTransaction), but eth_sign can. Because of this
+    // security risk of eth_sign, which is deprecated, MetaMask doesn’t want you to use it. So if you are using MetaMask
+    // and try to use eth_sign, ethers will change it to use personal_sign. Therefore, we ensure ethers cannot detect
+    // that we are using MetaMask
+    const isMetaMask = provider.provider.isMetaMask;
+    if (isMetaMask) provider.provider.isMetaMask = false;
+
+    // Prompt the user to sign each transaction
+    const signedTransactions: string[] = [];
+    for (const populatedTransaction of populatedTransactions) {
+      const tx = TransactionFactory.fromTxData(populatedTransaction, { common: this.common });
+      const unsignedTransaction = tx.getMessageToSign();
+      const signature = await this.provider.send('eth_sign', [from, hexlify(unsignedTransaction)]);
+      const splitSig = splitSignature(signature);
+      // @ts-expect-error this is a private method and not part of the type definitions
+      const txWithSig = tx._processSignature(splitSig.v, arrayify(splitSig.r), arrayify(splitSig.s));
+      signedTransactions.push(hexlify(txWithSig.serialize()));
+    }
+
+    // Reset provider to it's original state and return the signed transactions
+    provider.provider.isMetaMask = isMetaMask;
+    return signedTransactions;
   }
 
   /**
