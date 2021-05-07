@@ -3,7 +3,6 @@ import { Web3Provider } from '@ethersproject/providers';
 import { useWeb3React, UnsupportedChainIdError } from '@web3-react/core';
 import { useEagerConnect, useInactiveListener } from 'hooks/react-web3';
 import { network, injected } from 'helpers/connectors';
-import { config } from 'config';
 import { ModalContext } from 'components/Modal';
 import { ToastContext } from 'components/Toast';
 import { XIcon } from '@heroicons/react/solid';
@@ -38,7 +37,7 @@ function getErrorMessage(error: Error) {
 const ConnectionModal = ({ props }) => {
   const { clearModal } = useContext(ModalContext);
   const { connector, chainId, activate, deactivate, error } = useWeb3React<Web3Provider>();
-  const { activatingConnector, setActivatingConnector, triedEager, setIntendedChainId } = props;
+  const { activatingConnector, setActivatingConnector, triedEager } = props;
 
   return (
     <div className="pb-2">
@@ -58,29 +57,19 @@ const ConnectionModal = ({ props }) => {
           if (connectorName === 'Network') return;
           return (
             <div className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between" key={connectorName}>
-              <div className="mx-4 w-3/5 font-semibold">{connectorName}</div>
-              <div>
-                {Object.entries(config.networks).map(([networkId, network]) => (
-                  <button
-                    className={[
-                      'mb-1 px-2 mx-auto border border-gray-300 rounded text-sm w-full',
-                      Number(networkId) === chainId && connected ? 'border-green-300 bg-green-100' : '',
-                    ].join(' ')}
-                    key={networkId}
-                    onClick={async () => {
-                      if (connected && chainId === +networkId) return deactivate();
-                      // if connector is injected, set the activating connector
-                      if (!activating && connectorName === ConnectorNames.Injected) {
-                        setIntendedChainId(networkId);
-                        await activate(connectorsByName[connectorName]);
-                        // return changeNetworkOnInjectedProvider(library, account, networkId);
-                      }
-                    }}
-                  >
-                    {network.name}
-                  </button>
-                ))}
-              </div>
+              <button
+                className={'mx-4 w-3/5 font-semibold ' + (connected ? 'border-green-300' : '')}
+                onClick={async () => {
+                  console.log(connected, activating, connectorName);
+                  if (connected) return deactivate();
+                  // if connector is injected, set the activating connector
+                  if (!activating && connectorName === ConnectorNames.Injected) {
+                    await activate(connectorsByName[connectorName]);
+                  }
+                }}
+              >
+                {connectorName}
+              </button>
             </div>
           );
         })}
@@ -93,14 +82,15 @@ export const Connection = () => {
   const { connector, library, chainId, account, activate, deactivate, active, error } = useWeb3React<Web3Provider>();
   const { setModal, clearModal } = useContext(ModalContext);
   const { setToast } = useContext(ToastContext);
-  const [intendedChainId, setIntendedChainId] = useState(null);
   useEffect(() => {
-    if (error)
+    if (error) {
+      console.log(error);
       setToast({
         type: 'error',
         content: getErrorMessage(error),
         timeout: 5000,
       });
+    }
   }, [error]);
 
   // handle logic to eagerly connect to the injected ethereum provider, if it exists and has granted access already
@@ -138,7 +128,6 @@ export const Connection = () => {
             activatingConnector,
             setActivatingConnector,
             triedEager,
-            setIntendedChainId,
           }}
         />
       ),

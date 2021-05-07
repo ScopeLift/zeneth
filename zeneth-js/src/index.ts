@@ -1,5 +1,3 @@
-import { resolve } from 'path';
-import { config as dotenvConfig } from 'dotenv';
 import { getAddress } from '@ethersproject/address';
 import { arrayify, hexlify, splitSignature } from '@ethersproject/bytes';
 import { Zero } from '@ethersproject/constants';
@@ -10,18 +8,8 @@ import { TransactionFactory } from '@ethereumjs/tx';
 import Common from '@ethereumjs/common';
 import { TransactionFragment } from './types';
 
-dotenvConfig({ path: resolve(__dirname, '../../.env') });
-
-// Verify environment variables
-const authPrivateKey = process.env.AUTH_PRIVATE_KEY;
-if (!authPrivateKey) throw new Error('Please set your AUTH_PRIVATE_KEY in the .env file');
-
-// Get auth signer
-const authSigner = new Wallet(authPrivateKey);
-
 // Define constants
 const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
-
 export class ZenethRelayer {
   constructor(
     readonly provider: JsonRpcProvider,
@@ -32,15 +20,15 @@ export class ZenethRelayer {
   /**
    * @notice Returns a new ZenethRelayer instance
    */
-  static async create(provider: JsonRpcProvider) {
+  static async create(provider: JsonRpcProvider, authPrivateKey: string) {
     const chainId = (await provider.getNetwork()).chainId;
 
     // If the chainId is 1, set relayUrl to undefined so FlashbotsBundleProvider uses its `DEFAULT_FLASHBOTS_RELAY`
     // parameter for mainnet. If chainId is 5, use the current Goerli relayer. Otherwise, chainId is unsupported
     if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
     const relayUrl = chainId === 1 ? undefined : GOERLI_RELAY_URL;
-
     const common = new Common({ chain: chainId });
+    const authSigner = new Wallet(authPrivateKey);
 
     // Return new ZenethRelayer instance
     const flashbotsProvider = await FlashbotsBundleProvider.create(provider, authSigner, relayUrl);
@@ -65,7 +53,7 @@ export class ZenethRelayer {
       chainId: this.provider.network.chainId,
       data: tx.data || '0x',
       gasLimit,
-      gasPrice: Zero,
+      gasPrice: '0x0',
       nonce: nonce || (await this.provider.getTransactionCount(from as string)),
       to: getAddress(to),
       value: tx.value || Zero,

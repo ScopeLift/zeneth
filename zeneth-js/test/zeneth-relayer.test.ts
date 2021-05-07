@@ -41,13 +41,13 @@ const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
 describe('Flashbots relayer', () => {
   describe('Initialization', () => {
     it('initializes a relayer instance with mainnet as the default', async () => {
-      const zenethRelayer = await ZenethRelayer.create(mainnetProvider);
+      const zenethRelayer = await ZenethRelayer.create(mainnetProvider, process.env.AUTH_PRIVATE_KEY as string);
       expect(zenethRelayer.provider.connection.url).to.equal(mainnetProviderUrl);
       expect(zenethRelayer.flashbotsProvider.connection.url).to.equal('https://relay.flashbots.net');
     });
 
     it('initializes a relayer instance against a Goerli', async () => {
-      const zenethRelayer = await ZenethRelayer.create(goerliProvider);
+      const zenethRelayer = await ZenethRelayer.create(goerliProvider, process.env.AUTH_PRIVATE_KEY as string);
       expect(zenethRelayer.provider.connection.url).to.equal(goerliProviderUrl);
       expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(GOERLI_RELAY_URL);
     });
@@ -56,7 +56,10 @@ describe('Flashbots relayer', () => {
       const rinkebyProviderUrl = `https://rinkeby.infura.io/v3/${infuraId}`;
       const rinkebyProvider = new JsonRpcProvider(rinkebyProviderUrl);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expectRejection(ZenethRelayer.create(rinkebyProvider), 'Unsupported network');
+      expectRejection(
+        ZenethRelayer.create(rinkebyProvider, process.env.AUTH_PRIVATE_KEY as string),
+        'Unsupported network'
+      );
     });
   });
 
@@ -68,7 +71,7 @@ describe('Flashbots relayer', () => {
     let chainId: number;
 
     beforeEach(async () => {
-      zenethRelayer = await ZenethRelayer.create(goerliProvider);
+      zenethRelayer = await ZenethRelayer.create(goerliProvider, process.env.AUTH_PRIVATE_KEY as string);
       ({ chainId } = await goerliProvider.getNetwork());
 
       // Verify user has no ETH
