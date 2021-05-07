@@ -25,8 +25,8 @@ const abi = [
 
 const supportedTokens: TokenInfo[] = [
   {
-    address: '0xB5Fcbf962529ED7E162fD5d8168990379ecBe416',
-    name: 'TestnetDAI',
+    address: '0xCdC50DB037373deaeBc004e7548FA233B3ABBa57',
+    name: 'DAI',
     symbol: 'DAI',
     chainId: 5,
     decimals: 18,
@@ -36,7 +36,7 @@ const supportedTokens: TokenInfo[] = [
 const inputStyle = 'bg-gray-200 rounded p-3 w-full block';
 
 const ERC20Form = () => {
-  const { account, library } = useWeb3React<Web3Provider>();
+  const { account, library, chainId } = useWeb3React<Web3Provider>();
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
@@ -94,8 +94,14 @@ const ERC20Form = () => {
     console.log(fragments);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
-    const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
-    console.log(bundlePromises);
+    // const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
+    const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
+    const headers = { 'Content-Type': 'application/json' };
+    const response = await fetch('https://zeneth.herokuapp.com/relay/', { method: 'POST', body, headers });
+    console.log('response: ', response);
+    const json = await response.json();
+    console.log('json: ', json);
+
     // const responses =
     // console.log('submit');
   };

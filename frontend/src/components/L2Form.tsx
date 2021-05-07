@@ -63,7 +63,7 @@ const supportedL2s: l2Info[] = [
 const inputStyle = 'bg-gray-200 rounded p-3 w-full block';
 
 const L2Form = () => {
-  const { account, library } = useWeb3React<Web3Provider>();
+  const { account, library, chainId } = useWeb3React<Web3Provider>();
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     l2: l2Info | undefined;
@@ -122,9 +122,12 @@ const L2Form = () => {
     console.log(fragments);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
-    const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
-    console.log(bundlePromises);
-    // const responses =
+    const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
+    const headers = { 'Content-Type': 'application/json' };
+    const response = await fetch('https://zeneth.herokuapp.com/relay/', { method: 'POST', body, headers });
+    console.log('response: ', response);
+    const json = await response.json();
+    console.log('json: ', json);
   };
 
   const formGroup = 'my-2 flex flex-row';
