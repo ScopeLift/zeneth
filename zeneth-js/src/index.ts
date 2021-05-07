@@ -1,5 +1,5 @@
-import { resolve } from 'path';
-import { config as dotenvConfig } from 'dotenv';
+//import { resolve } from 'path';
+//import { config as dotenvConfig } from 'dotenv';
 import { getAddress } from '@ethersproject/address';
 import { Zero } from '@ethersproject/constants';
 import { JsonRpcProvider, TransactionRequest } from '@ethersproject/providers';
@@ -8,10 +8,11 @@ import { Wallet } from '@ethersproject/wallet';
 import { FlashbotsBundleProvider, FlashbotsOptions } from '@flashbots/ethers-provider-bundle';
 import { TransactionFragment } from './types';
 
-dotenvConfig({ path: resolve(__dirname, '../../.env') });
+//dotenvConfig({ path: resolve(__dirname, '../../.env') });
 
 // Verify environment variables
-const authPrivateKey = process.env.AUTH_PRIVATE_KEY;
+//const authPrivateKey = process.env.AUTH_PRIVATE_KEY;
+const authPrivateKey = '0x0000000000000000000000000000000000000000000000000000000000000001';
 if (!authPrivateKey) throw new Error('Please set your AUTH_PRIVATE_KEY in the .env file');
 
 // Get auth signer
