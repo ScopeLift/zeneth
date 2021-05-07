@@ -43,7 +43,15 @@ type l2Info = {
   name: string;
   address: string;
   abi: string[];
-  encodeDeposit: (amount: string, tokenAddress: string, recipient: string) => string;
+  encodeDeposit: ({
+    amount,
+    tokenAddress,
+    recipient,
+  }: {
+    amount: string;
+    tokenAddress: string;
+    recipient: string;
+  }) => string;
 };
 
 const supportedL2s: l2Info[] = [
@@ -51,7 +59,7 @@ const supportedL2s: l2Info[] = [
     name: 'zkSync',
     address: zkSyncAddress,
     abi: zkSyncAbi,
-    encodeDeposit: (amount: string, tokenAddress: string, recipient: string) =>
+    encodeDeposit: ({ amount, tokenAddress, recipient }: { amount: string; tokenAddress: string; recipient: string }) =>
       new Contract(zkSyncAddress, zkSyncAbi).interface.encodeFunctionData('depositERC20', [
         tokenAddress,
         amount,
@@ -72,10 +80,10 @@ const L2Form = () => {
   }>({
     token: supportedTokens[0],
     l2: supportedL2s[0],
-    amount: parseUnits('1000', 18).toString(),
-    minerFee: parseUnits('100', 18).toString(),
+    amount: parseUnits('10', 18).toString(),
+    minerFee: parseUnits('1', 18).toString(),
   });
-  if (!library) return null;
+  if (!library || !chainId) return null;
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const value = e.target.value;
     setFormState({
@@ -89,19 +97,30 @@ const L2Form = () => {
     const erc20 = new Contract(formState.token.address, erc20abi);
     const l2 = new Contract(formState.l2.address, formState.l2.abi);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_SIGNING_KEY as string);
-    const { swapBriber } = config.networks[5];
+    const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    const bribeAmount = parseUnits('.01', 18);
+    const bribeAmount = parseUnits('0.000', 18); // .001 ETH
+    console.log(account, weth, swapBriber, uniswapRouter, erc20.address, l2.address);
     const fragments = [
       {
-        data: formState.l2.encodeDeposit(formState.amount, erc20.address, account as string),
-        gasLimit: hexlify(300000),
+        data: erc20.interface.encodeFunctionData('approve', [l2.address, MaxUint256.toString()]),
+        gasLimit: hexlify(150000),
+        to: erc20.address,
+        value: '0x0',
+      },
+      {
+        data: formState.l2.encodeDeposit({
+          amount: formState.amount,
+          tokenAddress: erc20.address,
+          recipient: account as string,
+        }),
+        gasLimit: hexlify(500000),
         to: l2.address,
         value: '0x0',
       },
       {
         data: erc20.interface.encodeFunctionData('approve', [swapBriber, MaxUint256.toString()]),
-        gasLimit: hexlify(100000),
+        gasLimit: hexlify(150000),
         to: erc20.address,
         value: '0x0',
       },
@@ -110,11 +129,11 @@ const L2Form = () => {
           erc20.address, // token to swap
           formState.minerFee, // fee in tokens
           bribeAmount.toString(), // bribe amount in ETH. less than or equal to DAI from above
-          '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // uniswap router address (goerli)
-          [erc20.address, '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'], // path of swap // TODO: put in config!! varies per network!! mainnet: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+          uniswapRouter, // uniswap router address
+          [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
         ]),
-        gasLimit: hexlify(250000),
+        gasLimit: hexlify(500000),
         to: swapBriber,
         value: '0x0',
       },
@@ -122,7 +141,7 @@ const L2Form = () => {
     console.log(fragments);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
-    const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
+    const body = JSON.stringify({ txs: signatures, blocks: 1, chainId });
     const headers = { 'Content-Type': 'application/json' };
     const response = await fetch('https://zeneth.herokuapp.com/relay/', { method: 'POST', body, headers });
     console.log('response: ', response);

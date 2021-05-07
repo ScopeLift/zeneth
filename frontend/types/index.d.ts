@@ -3,7 +3,7 @@ export { TokenList, TokenInfo } from '@uniswap/token-lists/dist/types';
 type NetworkEntry = {
   name: string;
   rpcUrl: string;
-  swapBriber: string;
+  addresses: Record<string, string>;
 };
 
 export type AppConfig = {
