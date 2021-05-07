@@ -1,9 +1,9 @@
 import Header from 'components/Header';
-import ERC20Form from 'components/ERC20Form';
+// import ERC20Form from 'components/ERC20Form';
 import { Web3Provider } from '@ethersproject/providers';
 import { Web3ReactProvider } from '@web3-react/core';
 import { WithModal } from 'components/Modal';
-// import L2Form from 'components/L2Form';
+import L2Form from 'components/L2Form';
 
 import Footer from 'components/Footer';
 
@@ -21,10 +21,8 @@ const Index = () => {
           <div className="my-5">
             <Header />
           </div>
-          <div className="my-5">
-            <ERC20Form />
-          </div>
-          {/* <L2Form /> */}
+          <div className="my-5">{/* <ERC20Form /> */}</div>
+          <L2Form />
           <div className="my-5">
             <Footer />
           </div>

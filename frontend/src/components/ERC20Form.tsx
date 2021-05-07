@@ -94,6 +94,9 @@ const ERC20Form = () => {
     console.log(fragments);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
+    const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
+    console.log(bundlePromises);
+    // const responses =
     // console.log('submit');
   };
 
@@ -124,7 +127,7 @@ const ERC20Form = () => {
           <input name="amount" value={formState.amount} className={inputStyle} onChange={handleChange} />
         </div>
         <div className={formGroup}>
-          <label className={label}>Miner Fee</label>
+          <label className={label}>Fee</label>
           <input name="minerFee" value={formState.minerFee} className={inputStyle} onChange={handleChange} />
         </div>
         <button className="p-3 bg-gradient-to-r from-green-200 to-purple-200 rounded" onClick={doSubmit}>
