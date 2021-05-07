@@ -13,7 +13,7 @@ const supportedTokens: TokenInfo[] = [
   },
 ];
 
-const ERC20Form = () => {
+const L2Form = () => {
   return (
     <div>
       <form>
@@ -44,4 +44,4 @@ const TokenListbox = ({ supportedTokens }: { supportedTokens: TokenInfo[] }) => 
   );
 };
 
-export default ERC20Form;
+export default L2Form;

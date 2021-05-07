@@ -1,12 +1,4 @@
-type NetworkEntry = {
-  name: string;
-  rpcUrl: string;
-};
-
-type AppConfig = {
-  networks: Record<number, NetworkEntry>;
-  defaultNetwork: number;
-};
+import { AppConfig } from 'types';
 
 export const config: AppConfig = {
   defaultNetwork: 5,

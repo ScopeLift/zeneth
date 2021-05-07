@@ -31,10 +31,28 @@ const supportedTokens: TokenInfo[] = [
 
 const inputStyle = 'bg-gray-200 rounded p-3 w-full block';
 
-const L2Form = () => {
+const ERC20Form = () => {
   const { account, library } = useWeb3React<Web3Provider>();
-  const [token, setToken] = useState<TokenInfo>();
-  const doSubmit = async (e) => {
+  if (!library) return null;
+
+  const [token, setToken] = useState<TokenInfo | undefined>(undefined);
+  const [recipientAddress, setRecipientAddress] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
+  const [minerFee, setMinerFee] = useState<string>('');
+  const [formState, setFormState] = useState({
+    token: undefined,
+    recipientAddress: '',
+    amount: '',
+    minerFee: '',
+  });
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const value = e.target.value;
+    setFormState({
+      ...formState,
+      [e.target.name]: value,
+    });
+  };
+  const doSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token?.address) throw new Error('token not set');
     const erc20 = new Contract(token.address, abi);
@@ -49,19 +67,23 @@ const L2Form = () => {
       <form className="flex flex-col">
         <div className={formGroup}>
           <label className={label}>Token</label>
-          <TokenListbox selectedToken={token} supportedTokens={supportedTokens} setToken={setToken} />
+          <TokenListbox
+            selectedToken={token}
+            supportedTokens={supportedTokens}
+            setToken={(token) => setFormState({ ...formState, token })}
+          />
         </div>
         <div className={formGroup}>
           <label className={label}>Recipient</label>
-          <input className={inputStyle} />
+          <input name="recipientAddress" className={inputStyle} onChange={handleChange} />
         </div>
         <div className={formGroup}>
           <label className={label}>Amount</label>
-          <input className={inputStyle} />
+          <input name="amount" className={inputStyle} onChange={handleChange} />
         </div>
         <div className={formGroup}>
           <label className={label}>Miner Fee</label>
-          <input className={inputStyle} />
+          <input name="minerFee" className={inputStyle} onChange={handleChange} />
         </div>
         <button onClick={doSubmit}>Submit</button>
       </form>
@@ -76,13 +98,12 @@ const TokenListbox = ({
 }: {
   supportedTokens: TokenInfo[];
   selectedToken: TokenInfo | undefined;
-  setToken: Dispatch<any>;
+  setToken: Dispatch<TokenInfo>;
 }) => {
-  // const [selectedToken, setSelectedToken] = useState<TokenInfo>();
   return (
     <Listbox value={selectedToken} onChange={setToken}>
       <Listbox.Button className={inputStyle}>
-        {selectedToken ? `${selectedToken.symbol} (${selectedToken.address})` : 'Select Token'}
+        {selectedToken ? `${selectedToken.symbol as string} (${selectedToken.address as string})` : 'Select Token'}
       </Listbox.Button>
       <Listbox.Options>
         {supportedTokens.map((token) => (
@@ -100,4 +121,4 @@ const TokenListbox = ({
   );
 };
 
-export default L2Form;
+export default ERC20Form;
