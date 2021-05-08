@@ -80,8 +80,8 @@ const L2Form = () => {
   }>({
     token: supportedTokens[0],
     l2: supportedL2s[0],
-    amount: parseUnits('10', 18).toString(),
-    minerFee: parseUnits('1', 18).toString(),
+    amount: parseUnits('1', 18).toString(),
+    minerFee: parseUnits('200', 18).toString(),
   });
   if (!library || !chainId) return null;
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -96,10 +96,10 @@ const L2Form = () => {
     if (!formState.l2) throw new Error('token not set');
     const erc20 = new Contract(formState.token.address, erc20abi);
     const l2 = new Contract(formState.l2.address, formState.l2.abi);
-    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_SIGNING_KEY as string);
+    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    const bribeAmount = parseUnits('0.000', 18); // .001 ETH
+    const bribeAmount = parseUnits('0.05', 18); // .001 ETH
     console.log(account, weth, swapBriber, uniswapRouter, erc20.address, l2.address);
     const fragments = [
       {
@@ -141,9 +141,9 @@ const L2Form = () => {
     console.log(fragments);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
-    const body = JSON.stringify({ txs: signatures, blocks: 1, chainId });
+    const body = JSON.stringify({ txs: signatures, blocks: 50, chainId });
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch('https://zeneth.herokuapp.com/relay/', { method: 'POST', body, headers });
+    const response = await fetch('http://localhost:3001/relay', { method: 'POST', body, headers });
     console.log('response: ', response);
     const json = await response.json();
     console.log('json: ', json);

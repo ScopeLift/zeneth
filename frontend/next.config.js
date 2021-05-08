@@ -4,7 +4,7 @@ config('./.env');
 module.exports = {
   env: {
     INFURA_ID: process.env.INFURA_ID,
-    AUTH_SIGNING_KEY: process.env.AUTH_SIGNING_KEY,
+    AUTH_PRIVATE_KEY: process.env.AUTH_PRIVATE_KEY,
   },
   future: {
     webpack5: true,

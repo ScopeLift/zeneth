@@ -6,9 +6,10 @@ import { Connection } from 'components/Connection';
 export const Header = () => {
   const { chainId } = useWeb3React<Web3Provider>();
   return (
-    <div>
+    <div className="text-center">
+      <p>Hi</p>
       <Connection />
-      {chainId}
+      Chain ID: {chainId}
       <BlockNumber />
     </div>
   );
