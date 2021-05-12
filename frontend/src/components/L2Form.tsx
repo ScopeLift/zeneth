@@ -144,7 +144,7 @@ const L2Form = () => {
     console.log(signatures);
     const body = JSON.stringify({ txs: signatures, blocks: 50, chainId });
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch('http://localhost:3001/relay', { method: 'POST', body, headers });
+    const response = await fetch(config.relayUrl, { method: 'POST', body, headers });
     console.log('response: ', response);
     const json = await response.json();
     console.log('json: ', json);

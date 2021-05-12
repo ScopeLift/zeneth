@@ -64,7 +64,7 @@ const ERC20Form = () => {
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    const bribeAmount = parseUnits('.01', 18);
+    const bribeAmount = parseUnits('.1', 18);
     const fragments = [
       {
         data: erc20.interface.encodeFunctionData('transfer', [formState.recipientAddress, formState.amount.toString()]),
@@ -99,7 +99,7 @@ const ERC20Form = () => {
     // const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
     const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch('https://zeneth.herokuapp.com/relay/', { method: 'POST', body, headers });
+    const response = await fetch(config.relayUrl, { method: 'POST', body, headers });
     console.log('response: ', response);
     const json = await response.json();
     console.log('json: ', json);
