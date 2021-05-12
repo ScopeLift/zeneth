@@ -24,7 +24,7 @@
     "clean": "lerna run clean",
     "lint": "lerna run lint",
     "prettier": "lerna run prettier",
-    "prepare": "husky install",
+    "prepare": "husky install && lerna run prepare",
     "test": "lerna run test"
   },
   "volta": {
