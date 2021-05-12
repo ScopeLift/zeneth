@@ -44,7 +44,7 @@ const ConnectionModal = ({ props }) => {
       <div className="flex justify-between w-full bg-gray-200 p-3 font-semibold">
         <h2>Connect Wallet</h2>
 
-        <XIcon className="opacity-50 hover:opacity-80 hover:cursor-pointer" onClick={() => clearModal()} />
+        <XIcon className="opacity-50 hover:opacity-80 hover:cursor-pointer h-6 w-6" onClick={() => clearModal()} />
       </div>
 
       <div className="flex flex-col px-2">
