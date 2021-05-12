@@ -61,7 +61,7 @@ const ERC20Form = () => {
     // if (!formState.token?.address) throw new Error('token not set');
     const erc20 = new Contract(formState.token.address, abi);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
-    const { swapBriber } = config.networks[5];
+    const { swapBriber } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
     const bribeAmount = parseUnits('.01', 18);
     const fragments = [
