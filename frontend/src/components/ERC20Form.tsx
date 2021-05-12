@@ -60,8 +60,9 @@ const ERC20Form = () => {
     e.preventDefault();
     // if (!formState.token?.address) throw new Error('token not set');
     const erc20 = new Contract(formState.token.address, abi);
+    console.log(process.env.AUTH_PRIVATE_KEY);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
-    const { swapBriber } = config.networks[chainId].addresses;
+    const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
     const bribeAmount = parseUnits('.01', 18);
     const fragments = [
@@ -82,8 +83,8 @@ const ERC20Form = () => {
           erc20.address, // token to swap
           formState.minerFee, // fee in tokens
           bribeAmount.toString(), // bribe amount in ETH. less than or equal to DAI from above
-          '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // uniswap router address (goerli)
-          [erc20.address, '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'], // path of swap // TODO: put in config!! varies per network!! mainnet: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+          uniswapRouter, // uniswap router address
+          [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
         ]),
         gasLimit: hexlify(250000),
@@ -92,6 +93,7 @@ const ERC20Form = () => {
       },
     ];
     console.log(fragments);
+    console.log(account);
     const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
     console.log(signatures);
     // const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
@@ -101,9 +103,6 @@ const ERC20Form = () => {
     console.log('response: ', response);
     const json = await response.json();
     console.log('json: ', json);
-
-    // const responses =
-    // console.log('submit');
   };
 
   const formGroup = 'my-2 flex flex-row';

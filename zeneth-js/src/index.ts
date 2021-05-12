@@ -43,8 +43,12 @@ export class ZenethRelayer {
    * @param tx A TransactionRequest that is not completed. Only from, to, and gasLimit are required
    */
   async populateTransaction(tx: TransactionRequest): Promise<TransactionRequest> {
-    const { nonce, from, to, gasLimit } = tx;
-    if (!nonce && !from) throw new Error("Must include either 'from' or 'nonce' field");
+    const { from, to, gasLimit } = tx;
+    let { nonce } = tx;
+    if (nonce === undefined) {
+      if (!from) throw new Error("Must include either 'from' or 'nonce' field");
+      nonce = await this.provider.getTransactionCount(from);
+    }
     if (!to) throw new Error("Must include 'to' field");
     if (!gasLimit) throw new Error("Must include 'gasLimit' field");
 
@@ -54,7 +58,7 @@ export class ZenethRelayer {
       data: tx.data || '0x',
       gasLimit,
       gasPrice: '0x0',
-      nonce: nonce || (await this.provider.getTransactionCount(from as string)),
+      nonce,
       to: getAddress(to),
       value: tx.value || Zero,
     };
@@ -69,15 +73,16 @@ export class ZenethRelayer {
    */
   async populateTransactions(from: string, txs: TransactionFragment[]): Promise<TransactionRequest[]> {
     const initialNonce = await this.provider.getTransactionCount(from);
-    const promises = txs.map((tx, index) =>
-      this.populateTransaction({
+    console.log(initialNonce);
+    const promises = txs.map((tx, index) => {
+      return this.populateTransaction({
         data: tx.data,
         gasLimit: tx.gasLimit,
         nonce: initialNonce + index, // increment nonce for each transaction
         to: tx.to,
         value: tx.value,
-      })
-    );
+      });
+    });
     return Promise.all(promises);
   }
 

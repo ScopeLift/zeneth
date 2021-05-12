@@ -96,6 +96,7 @@ const L2Form = () => {
     if (!formState.l2) throw new Error('token not set');
     const erc20 = new Contract(formState.token.address, erc20abi);
     const l2 = new Contract(formState.l2.address, formState.l2.abi);
+    // console.log(process.env.AUTH_PRIVATE_KEY);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
