@@ -9,7 +9,7 @@ export const BlockNumber = () => {
   useEffect(() => {
     if (!library) return;
     // listen for changes on an Ethereum address
-    console.log(`listening for blocks...`);
+    console.log('listening for blocks...');
     library.on('block', (data) => {
       console.log(data);
       setBlockNumber(data);
@@ -24,9 +24,5 @@ export const BlockNumber = () => {
   if (!blockNumber || !library) {
     return <> </>;
   }
-  return (
-    <div className="py-1 px-2 rounded border border-gray-400 text-xs text-gray-400 mr-2">
-      Block Number: {blockNumber.toString()}
-    </div>
-  );
+  return <div>Block Number: {blockNumber.toString()}</div>;
 };
