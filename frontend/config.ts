@@ -2,6 +2,7 @@ import { AppConfig } from 'types';
 
 export const config: AppConfig = {
   defaultNetwork: 5,
+  relayUrl: 'http://localhost:3001/relay',
   networks: {
     1: {
       name: 'Mainnet',

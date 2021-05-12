@@ -9,4 +9,5 @@ type NetworkEntry = {
 export type AppConfig = {
   networks: Record<number, NetworkEntry>;
   defaultNetwork: number;
+  relayUrl: string;
 };
