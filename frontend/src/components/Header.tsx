@@ -12,7 +12,7 @@ export const Header = () => {
         <Image src="/static/images/logo.jpg" alt="Zeneth logo" width="64" height="64" />
         <div className="ml-5">Zeneth: Let your ETH chill</div>
       </div>
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end">
         <div className="mr-3">
           <Connection />
         </div>
