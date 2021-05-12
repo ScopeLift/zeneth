@@ -1,37 +1,18 @@
-import Header from 'components/Header';
-import ERC20Form from 'components/ERC20Form';
-import { Web3Provider } from '@ethersproject/providers';
-import { Web3ReactProvider } from '@web3-react/core';
-import { WithModal } from 'components/Modal';
-import L2Form from 'components/L2Form';
-
-import Footer from 'components/Footer';
-
-const getLibrary = (provider: any): Web3Provider => {
-  const library = new Web3Provider(provider);
-  library.pollingInterval = 12000;
-  return library;
-};
+import Link from 'next/link';
 
 const Index = () => {
+  const buttonClass = 'p-5 cursor-pointer text-xl bg-gradient-to-r from-green-200 to-purple-200 rounded';
   return (
-    <Web3ReactProvider getLibrary={getLibrary}>
-      <WithModal>
-        <div className="flex flex-col items-center">
-          <div className="my-5">
-            <Header />
-          </div>
-
-          <div className="my-5">
-            <ERC20Form />
-          </div>
-          <L2Form />
-          <div className="my-5">
-            <Footer />
-          </div>
+    <div className="flex flex-row">
+      <Link href="/l2-entry">
+        <div className="p-5 cursor-pointer text-xl bg-gradient-to-r from-green-200 to-purple-200 rounded text-center mr-3">
+          Gasless L2 Entry
         </div>
-      </WithModal>
-    </Web3ReactProvider>
+      </Link>
+      <Link href="/token-transfer">
+        <div className={buttonClass}>Gasless Token Transfer</div>
+      </Link>
+    </div>
   );
 };
 

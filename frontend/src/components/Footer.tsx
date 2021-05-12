@@ -1,5 +1,5 @@
 export const Footer = () => {
-  return <div>Bye</div>;
+  return <div>Created by ScopeLift</div>;
 };
 
 export default Footer;
