@@ -7,7 +7,7 @@ import { Contract } from '@ethersproject/contracts';
 import { MaxUint256 } from '@ethersproject/constants';
 import { parseUnits } from '@ethersproject/units';
 import { hexlify } from '@ethersproject/bytes';
-import { CheckIcon } from '@heroicons/react/solid';
+// import { CheckIcon } from '@heroicons/react/solid';
 import { ZenethRelayer } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
 import { config } from 'config';
@@ -33,10 +33,11 @@ const supportedTokens: TokenInfo[] = [
   },
 ];
 
-const inputStyle = 'bg-gray-200 rounded p-3 w-full block';
+const inputStyle = 'bg-gray-100 p-3 w-full block';
 
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
+
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
@@ -45,10 +46,13 @@ const ERC20Form = () => {
   }>({
     token: supportedTokens[0],
     recipientAddress: '0x1F9C65eB3749419A495C2984ebc057176A921D01',
-    amount: parseUnits('1000', 18).toString(),
-    minerFee: parseUnits('100', 18).toString(),
+    amount: '1000',
+    minerFee: '100',
   });
-  if (!library) return null;
+
+  if (!library || !chainId) return null;
+  if (!account) return <div>Please connect your wallet.</div>;
+
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const value = e.target.value;
     setFormState({
@@ -56,18 +60,23 @@ const ERC20Form = () => {
       [e.target.name]: value,
     });
   };
+
   const doSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // if (!formState.token?.address) throw new Error('token not set');
-    const erc20 = new Contract(formState.token.address, abi);
-    console.log(process.env.AUTH_PRIVATE_KEY);
-    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
+    const { token, recipientAddress, amount, minerFee } = formState;
+    const erc20 = new Contract(token.address, abi);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    const bribeAmount = parseUnits('.1', 18);
+    // console.log(process.env.AUTH_PRIVATE_KEY);
+    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
+
+    const bribeAmount = parseUnits('.1', 18).toString(); // In ETH
+    const transferAmount = parseUnits(amount, token.decimals).toString();
+    const relayAmount = parseUnits(minerFee, token.decimals).toString();
+
     const fragments = [
       {
-        data: erc20.interface.encodeFunctionData('transfer', [formState.recipientAddress, formState.amount.toString()]),
+        data: erc20.interface.encodeFunctionData('transfer', [recipientAddress, transferAmount]),
         gasLimit: hexlify(250000),
         to: erc20.address,
         value: '0x0',
@@ -81,8 +90,8 @@ const ERC20Form = () => {
       {
         data: swapBriberContract.interface.encodeFunctionData('swapAndBribe', [
           erc20.address, // token to swap
-          formState.minerFee, // fee in tokens
-          bribeAmount.toString(), // bribe amount in ETH. less than or equal to DAI from above
+          relayAmount, // fee in tokens
+          bribeAmount, // bribe amount in ETH. less than or equal to DAI from above
           uniswapRouter, // uniswap router address
           [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
@@ -94,9 +103,8 @@ const ERC20Form = () => {
     ];
     console.log(fragments);
     console.log(account);
-    const signatures = await zenethRelayer.signBundle(account as string, fragments, library);
+    const signatures = await zenethRelayer.signBundle(account, fragments, library);
     console.log(signatures);
-    // const bundlePromises = await zenethRelayer.sendBundle(signatures, 10);
     const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
     const headers = { 'Content-Type': 'application/json' };
     const response = await fetch(config.relayUrl, { method: 'POST', body, headers });
@@ -105,11 +113,13 @@ const ERC20Form = () => {
     console.log('json: ', json);
   };
 
-  const formGroup = 'my-2 flex flex-row';
-  const label = 'w-28 block self-center';
+  const formGroup = 'my-2 flex flex-row items-center rounded';
+  const label = 'w-24 block self-center flex-shrink-0';
+
   return (
-    <div className="border-green-500 border-solid border-2 drop-shadow-sm p-3">
+    <div className="shadow-lg p-7 bg-gradient-to-br from-red-300 to-purple-400 rounded-lg">
       <form className="flex flex-col">
+        <h1 className="text-2xl mb-7 text-gray-700">Gasless Token Transfer</h1>
         <div className={formGroup}>
           <label className={label}>Token</label>
           <TokenListbox
@@ -130,12 +140,14 @@ const ERC20Form = () => {
         <div className={formGroup}>
           <label className={label}>Amount</label>
           <input name="amount" value={formState.amount} className={inputStyle} onChange={handleChange} />
+          <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
         </div>
         <div className={formGroup}>
           <label className={label}>Fee</label>
           <input name="minerFee" value={formState.minerFee} className={inputStyle} onChange={handleChange} />
+          <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
         </div>
-        <button className="p-3 bg-gradient-to-r from-green-200 to-purple-200 rounded" onClick={doSubmit}>
+        <button className="mt-5 p-3 bg-blue-100 rounded opacity-90 hover:opacity-100 text-lg" onClick={doSubmit}>
           Submit
         </button>
       </form>
@@ -153,16 +165,16 @@ const TokenListbox = ({
   setToken: Dispatch<TokenInfo>;
 }) => {
   return (
-    <Listbox value={selectedToken} onChange={setToken}>
+    <Listbox as="div" value={selectedToken} onChange={setToken} className="relative z-20">
       <Listbox.Button className={inputStyle}>
         {selectedToken ? `${selectedToken.symbol as string} (${selectedToken.address as string})` : 'Select Token'}
       </Listbox.Button>
-      <Listbox.Options>
+      <Listbox.Options className="absolute mt-1 w-full">
         {supportedTokens.map((token) => (
           <Listbox.Option key={token.address} value={token} as={Fragment}>
             {({ active, selected }) => (
-              <li className={`${active ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}>
-                {selected && <CheckIcon className="h-5 w-5 text-blue-500" />}
+              <li className={`w-full p-3 ${active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+                {/* {selected && <CheckIcon className="h-5 w-5 text-blue-500" />} */}
                 {token.symbol}
               </li>
             )}
