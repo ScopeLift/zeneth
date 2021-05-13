@@ -18,11 +18,11 @@ const MyApp = ({ Component, pageProps }: { Component: FC; pageProps: Record<stri
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
       <WithModal>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center h-screen">
           <div className="my-5">
             <Header />
           </div>
-          <div className="my-5">
+          <div className="my-5 flex-grow">
             <Component {...pageProps} />
           </div>
           <div className="my-5">
