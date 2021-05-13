@@ -52,6 +52,7 @@ type l2Info = {
     tokenAddress: string;
     recipient: string;
   }) => string;
+  imageFile?: string;
 };
 
 const supportedL2s: l2Info[] = [
@@ -65,6 +66,44 @@ const supportedL2s: l2Info[] = [
         amount,
         recipient,
       ]),
+  },
+  {
+    name: 'Arbitrum',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+  },
+  {
+    name: 'Loopring',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+  },
+  {
+    name: 'Optimism',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+  },
+  {
+    name: 'Polygon',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+    imageFile: 'polygon.png',
+  },
+  {
+    name: 'SKALE',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+  },
+  {
+    name: 'Starkware',
+    address: '0x0',
+    abi: [''],
+    encodeDeposit: () => '',
+    imageFile: 'starkware.png',
   },
 ];
 
@@ -237,12 +276,22 @@ const L2Listbox = ({
       <Listbox.Button className={`text-left ${inputStyle}`}>
         {selectedL2 ? `${selectedL2.name as string} (${selectedL2.address as string})` : 'Select Token'}
       </Listbox.Button>
-      <Listbox.Options className="absolute mt-1 w-full">
-        {supportedL2s.map((l2) => (
+      <Listbox.Options className="absolute mt-1 w-full z-20">
+        {supportedL2s.map((l2: { name: string; address: string; imageFile?: string }) => (
           <Listbox.Option key={l2.address} value={l2} as={Fragment}>
             {({ active, selected }) => (
-              <li className={`w-full p-3 ${active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+              <li
+                className={`flex flex-row items-center w-full p-3 ${
+                  active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
+                }`}
+              >
                 {/* {selected && <CheckIcon className="h-5 w-5 text-blue-500" />} */}
+                <img
+                  src={`/static/images/${l2.imageFile || l2.name.toLowerCase() + '.jpg'}`}
+                  width="50"
+                  height="50"
+                  className="rounded-full mr-4"
+                />
                 {l2.name}
               </li>
             )}
