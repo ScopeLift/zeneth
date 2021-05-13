@@ -9,12 +9,12 @@ export const Header = () => {
   const { chainId } = useWeb3React<Web3Provider>();
   return (
     <div className="flex justify-between w-screen">
-      <div id="logo" className="flex flex-row mx-5 items-center cursor-pointer">
-        <Link href="/">
+      <Link href="/">
+        <div id="logo" className="flex flex-row mx-5 items-center cursor-pointer">
           <Image src="/static/images/logo.jpg" alt="Zeneth logo" width="64" height="64" />
-        </Link>
-        <div className="ml-5">Zeneth: Let your ETH chill</div>
-      </div>
+          <div className="ml-5">Zeneth: Let your ETH chill</div>
+        </div>
+      </Link>
       <div className="flex items-center justify-end">
         <div className="mr-3">
           <Connection />
