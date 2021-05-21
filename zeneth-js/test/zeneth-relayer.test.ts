@@ -150,9 +150,15 @@ describe('Flashbots relayer', () => {
         const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
         console.log('bundlePromises', bundlePromises);
         const responses = await Promise.all(bundlePromises);
-        const results = responses.map((res) => res.wait());
+        const results = responses.map((res) => {
+          // If there's an error, return it, otherwise return a promise to wait
+          return 'error' in res ? [res] : res.wait();
+        });
 
-        // TODO handle bundle promises better
+        // TODO handle bundle promises better. This promises will resolve to values of 0, 1, or 2 where:
+        // 0 = BundleIncluded
+        // 1 = BlockPassedWithoutInclusion
+        // 2 = AccountNonceTooHigh
         console.log('w0: ', await results[0]);
         console.log('w1: ', await results[1]);
         console.log('w2: ', await results[2]);
