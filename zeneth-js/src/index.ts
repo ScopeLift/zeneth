@@ -125,6 +125,16 @@ export class ZenethRelayer {
   }
 
   /**
+   * @notice Adds auth key signature to bundle of transactions signed by user
+   * @param txs Array of user-signed transactions to auth-sign
+   * @returns Array of transactions signed by our auth key
+   */
+  async authSign(txs: string[]) {
+    const flashbotsTxs = txs.map((tx) => ({ signedTransaction: tx }));
+    return await this.flashbotsProvider.signBundle(flashbotsTxs);
+  }
+
+  /**
    * @notice Sends a flashbots bundle
    * @param txs Array of signed transactions to send
    * @param validBlocks Starting from the next block, how many total blocks are valid for mining the transactions. A
@@ -134,8 +144,7 @@ export class ZenethRelayer {
     if (validBlocks < 1) throw new Error(`Minimum 'validBlocks' value is 1, got ${validBlocks}`);
 
     // First we sign the bundle of transactions with our auth key
-    const flashbotsTxs = txs.map((tx) => ({ signedTransaction: tx }));
-    const signedBundle = await this.flashbotsProvider.signBundle(flashbotsTxs);
+    const signedBundle = await this.authSign(txs);
 
     // Next we define the targetBlockNumbers, which are "The only block number for which the bundle is to be considered
     // valid. If you would like more than one block to be targeted, submit multiple rpc calls targeting each specific
