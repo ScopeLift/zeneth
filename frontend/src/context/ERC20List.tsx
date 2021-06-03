@@ -1,14 +1,10 @@
-import { useRef, useEffect } from 'react';
-import { useOutsideAlerter } from 'hooks/OutsideAlerter';
-import { createContext, useState, ReactNode } from 'react';
-import { TokenList } from 'types';
+import { createContext, useState, ReactNode, useEffect } from 'react';
 
 type ContextProps = {
   visible: boolean;
   content: ReactNode;
   clearModal: () => void;
   setModal: ({ content, styleClass }: { content: ReactNode; styleClass: string }) => void;
-  tokenList: TokenList;
 };
 
 export const ModalContext = createContext<ContextProps>({
@@ -16,14 +12,12 @@ export const ModalContext = createContext<ContextProps>({
   content: <div></div>,
   clearModal: () => undefined,
   setModal: () => undefined,
-  tokenList: [],
 });
 
 export const WithModal = ({ children }: { children: ReactNode }) => {
   const [visible, setModalVisible] = useState(false);
   const [content, setModalContent] = useState<ReactNode>();
   const [styleClass, setStyleClass] = useState('');
-  const [tokenList, setTokenList] = useState([]);
   const clearModal = () => {
     setModalVisible(false);
     setModalContent(<div></div>);
@@ -33,17 +27,6 @@ export const WithModal = ({ children }: { children: ReactNode }) => {
     setModalContent(content);
     setStyleClass(styleClass);
   };
-  useEffect(() => {
-    async function getTokenList() {
-      const response = await fetch(
-        'https://raw.githubusercontent.com/Uniswap/default-token-list/master/src/tokens/mainnet.json'
-      ).then((r) => r.json());
-      console.log(response);
-      setTokenList(response);
-    }
-    getTokenList();
-  }, []);
-
   return (
     <ModalContext.Provider
       value={{
@@ -51,7 +34,6 @@ export const WithModal = ({ children }: { children: ReactNode }) => {
         content,
         clearModal,
         setModal,
-        tokenList,
       }}
     >
       <div className={!visible ? 'hidden' : ''}>

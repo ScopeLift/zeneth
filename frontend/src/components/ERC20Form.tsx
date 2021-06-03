@@ -1,16 +1,17 @@
-import { useState, Fragment, Dispatch } from 'react';
+import { useState, Fragment, Dispatch, useContext } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
-import { Listbox } from '@headlessui/react';
+import { Listbox, Transition } from '@headlessui/react';
 import { TokenInfo } from 'types';
 import { Contract } from '@ethersproject/contracts';
 import { MaxUint256 } from '@ethersproject/constants';
 import { parseUnits } from '@ethersproject/units';
 import { hexlify } from '@ethersproject/bytes';
-// import { CheckIcon } from '@heroicons/react/solid';
+import { CheckIcon, SelectorIcon } from '@heroicons/react/solid';
 import { ZenethRelayer } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
 import { config } from 'config';
+import { ModalContext } from './Modal';
 
 const abi = [
   // Read-Only Functions
@@ -23,20 +24,11 @@ const abi = [
   'function approve(address spender, uint256 value) returns (boolean)',
 ];
 
-const supportedTokens: TokenInfo[] = [
-  {
-    address: '0xCdC50DB037373deaeBc004e7548FA233B3ABBa57',
-    name: 'DAI',
-    symbol: 'DAI',
-    chainId: 5,
-    decimals: 18,
-  },
-];
-
 const inputStyle = 'bg-gray-100 p-3 w-full block';
 
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
+  const { tokenList: supportedTokens } = useContext(ModalContext);
 
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
@@ -67,7 +59,6 @@ const ERC20Form = () => {
     const erc20 = new Contract(token.address, abi);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    // console.log(process.env.AUTH_PRIVATE_KEY);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
 
     const bribeAmount = parseUnits('.1', 18).toString(); // In ETH
@@ -166,21 +157,49 @@ const TokenListbox = ({
 }) => {
   return (
     <Listbox as="div" value={selectedToken} onChange={setToken} className="relative z-20">
-      <Listbox.Button className={inputStyle}>
-        {selectedToken ? `${selectedToken.symbol as string} (${selectedToken.address as string})` : 'Select Token'}
-      </Listbox.Button>
-      <Listbox.Options className="absolute mt-1 w-full">
-        {supportedTokens.map((token) => (
-          <Listbox.Option key={token.address} value={token} as={Fragment}>
-            {({ active, selected }) => (
-              <li className={`w-full p-3 ${active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
-                {/* {selected && <CheckIcon className="h-5 w-5 text-blue-500" />} */}
-                {token.symbol}
-              </li>
-            )}
-          </Listbox.Option>
-        ))}
-      </Listbox.Options>
+      {({ open }) => (
+        <>
+          <Listbox.Button className={inputStyle + ' truncate'}>
+            {selectedToken ? `${selectedToken.symbol as string} (${selectedToken.address as string})` : 'Select Token'}
+            <span className="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <SelectorIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            </span>
+          </Listbox.Button>
+          <Transition
+            show={open}
+            as={Fragment}
+            leave="transition ease-in duration-100"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <Listbox.Options
+              static
+              className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+            >
+              {supportedTokens.map((token) => (
+                <Listbox.Option key={token.address} value={token} as={Fragment}>
+                  {({ active, selected }) => (
+                    <li className={`w-full p-3 ${active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+                      {/* {selected && <CheckIcon className="h-5 w-5 text-blue-500" />} */}
+                      {token.symbol}
+                      {selected ? (
+                        <span
+                          className={[
+                            active ? 'text-white' : 'text-indigo-600',
+                            'absolute inset-y-0 right-0 flex items-center pr-4',
+                          ].join(' ')}
+                        >
+                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                      ) : null}
+                    </li>
+                  )}
+                </Listbox.Option>
+              ))}
+            </Listbox.Options>
+          </Transition>
+        </>
+      )}
     </Listbox>
   );
 };
