@@ -196,7 +196,7 @@ const L2Form = () => {
   const label = 'w-24 block self-center flex-shrink-0';
   return (
     <div className="shadow-lg p-7 bg-gradient-to-br from-red-300 to-purple-400 rounded-lg">
-      <form className="flex flex-col">
+      <form className="flex flex-col" spellCheck="false">
         <h1 className="text-2xl mb-7 text-gray-700">Gasless L2 Entry</h1>
         <div className={formGroup}>
           <label className={label}>Token</label>

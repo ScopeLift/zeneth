@@ -108,7 +108,7 @@ const ERC20Form = () => {
 
   return (
     <div className="shadow-lg p-7 bg-gradient-to-br from-red-300 to-purple-400 rounded-lg">
-      <form className="flex flex-col">
+      <form className="flex flex-col" spellCheck="false">
         <h1 className="text-2xl mb-7 text-gray-700">Gasless Token Transfer</h1>
         <div className={formGroup}>
           <label className={label}>Token</label>
