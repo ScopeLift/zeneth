@@ -7,7 +7,7 @@ export const BlockNumber = () => {
   const [blockNumber, setBlockNumber] = useState<number>(0);
 
   useEffect(() => {
-    if (!library) return;
+    if (!library) return () => {};
     // listen for changes on an Ethereum address
     console.log('listening for blocks...');
     library.on('block', (data) => {

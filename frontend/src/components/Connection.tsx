@@ -54,7 +54,7 @@ const ConnectionModal = ({ props }) => {
           const activating = currentConnector === activatingConnector;
           const connected = currentConnector === connector;
           const disabled = !triedEager || !!activatingConnector || connected || !!error;
-          if (connectorName === 'Network') return;
+          if (connectorName === 'Network') return <div></div>;
           return (
             <div className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between" key={connectorName}>
               <button
