@@ -5,6 +5,7 @@ import { Contract } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
 import { ZenethRelayer } from '../src/index';
+import { TokenInfo } from '../src/types';
 import * as ERC20Abi from '../src/abi/ERC20.json';
 import * as SwapBriberAbi from '../src/abi/SwapBriber.json';
 import { mainnetRelayUrl, goerliRelayUrl } from '../src/constants';
@@ -27,6 +28,16 @@ const goerliProvider = new JsonRpcProvider(goerliProviderUrl);
 // Uniswap V2 addresses (on Goerli)
 const uniRouterAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const wethAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+
+const supportedTokens: TokenInfo[] = [
+  {
+    address: '0xCdC50DB037373deaeBc004e7548FA233B3ABBa57',
+    name: 'DAI',
+    symbol: 'DAI',
+    chainId: 5,
+    decimals: 18,
+  },
+];
 
 // Get instance of Goerli DAI
 const dai = new Contract('0xCdC50DB037373deaeBc004e7548FA233B3ABBa57', ERC20Abi, goerliProvider);
@@ -79,6 +90,12 @@ describe('Flashbots relayer', () => {
       const minBalance = transferAmount + feeAmount;
       const userBalance = await dai.balanceOf(user.address);
       expect(userBalance.gt(minBalance), 'Please mint more Goerli DAI to the user to continue with testing').to.be.true;
+    });
+
+    describe('Estimates Fees', () => {
+      it('does a very simple fee calculation', async () => {
+        expect(await zenethRelayer.estimateFee(supportedTokens[0], 2, 3, 4, 2)).to.equal(18);
+      });
     });
 
     describe('Sends bundles', () => {

@@ -6,8 +6,9 @@ import { Wallet } from '@ethersproject/wallet';
 import { FlashbotsBundleProvider, FlashbotsOptions } from '@flashbots/ethers-provider-bundle';
 import { TransactionFactory } from '@ethereumjs/tx';
 import Common from '@ethereumjs/common';
-import { TransactionFragment } from './types';
+import { TransactionFragment, TokenInfo } from './types';
 import { mainnetRelayUrl, goerliRelayUrl } from './constants';
+import { getGasPrice } from './helpers';
 
 export class ZenethRelayer {
   constructor(
@@ -158,5 +159,37 @@ export class ZenethRelayer {
 
     // No errors simulating, so send the bundle
     return this.flashbotsProvider.sendRawBundle(signedBundle, blockNumber, opts);
+  }
+
+  /**
+   * @notice Estimates the fee (in base token units) for a bundle
+   * @param token Token in which fee will be expressed as units of
+   * @param transferUpperBound Given upper bound gas fee (in Gwei) for transfer
+   * @param approveUpperBound Given upper bound gas fee (in Gwei) for approve
+   * @param swapUpperBound Given upper bound gas fee (in Gwei) for swap
+   * @param flashbotsAdjustment Multiplier for flashbots bribing miner.
+   *
+   * @returns Estimated fee for miner in token base units
+   */
+  async estimateFee(
+    token: TokenInfo,
+    transferUpperBound: number,
+    approveUpperBound: number,
+    swapUpperBound: number,
+    flashbotsAdjustment: number
+  ): Promise<number> {
+    // get current gas price
+    const gasPriceInWei = await getGasPrice();
+    const bundleGasUsed = transferUpperBound + approveUpperBound + swapUpperBound;
+    const initiallyCalculatedFee = bundleGasUsed * gasPriceInWei;
+    const estimateinGwei = initiallyCalculatedFee * flashbotsAdjustment;
+
+    console.log(`token name: ${token.name} token symbole: ${token.symbol}`);
+    console.log(`gas price in gwei: ${gasPriceInWei}`);
+    console.log(`Bundle gas used fee is: ${bundleGasUsed}`);
+    console.log(`Initially Estimated fee in Gwei is: ${initiallyCalculatedFee}`);
+    console.log(`Estimated fee in Gwei (after flashbots adjustment): ${estimateinGwei}`);
+
+    return estimateinGwei;
   }
 }
