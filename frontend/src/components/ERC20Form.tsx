@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
 import { TokenInfo } from 'types';
@@ -36,10 +36,17 @@ const ERC20Form = () => {
     minerFee: string;
   }>({
     token: supportedTokens[0],
-    recipientAddress: '0x1F9C65eB3749419A495C2984ebc057176A921D01',
+    recipientAddress: '',
     amount: '1000',
     minerFee: '100',
   });
+
+  useEffect(() => {
+    setFormState({
+      ...formState,
+      token: supportedTokens[0],
+    });
+  }, [supportedTokens]);
 
   if (!library || !chainId) return null;
   if (!account) return <div>Please connect your wallet.</div>;
