@@ -1,15 +1,15 @@
 import { TokenInfo } from 'types';
 import { Listbox, Transition } from '@headlessui/react';
-import { Dispatch, Fragment, useState } from 'react';
+import { Dispatch, Fragment, useState, useEffect } from 'react';
 import { SelectorIcon, CheckIcon } from '@heroicons/react/solid';
+import tokenList from 'data/tokenlist.json';
+const supportedTokens = tokenList.tokens;
 
 export const TokenSelect = ({
-  supportedTokens,
   selectedToken,
   setToken,
   inputStyle,
 }: {
-  supportedTokens: TokenInfo[];
   selectedToken: TokenInfo | undefined;
   setToken: Dispatch<TokenInfo>;
   inputStyle: string;
@@ -20,6 +20,10 @@ export const TokenSelect = ({
     const value = e.target.value;
     setSearchString(value);
   };
+
+  useEffect(() => {
+    setToken(supportedTokens[0]);
+  }, [supportedTokens]);
 
   const filterTokens = (token: TokenInfo) => {
     if (!searchString) return true;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
 import { TokenInfo } from 'types';
@@ -27,7 +27,7 @@ const inputStyle = 'bg-gray-100 p-3 w-full block';
 
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
-  const { tokenList: supportedTokens } = useContext(ModalContext);
+  // const { tokenList: supportedTokens } = useContext(ModalContext);
 
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
@@ -35,18 +35,11 @@ const ERC20Form = () => {
     amount: string;
     minerFee: string;
   }>({
-    token: supportedTokens[0],
+    token: undefined,
     recipientAddress: '',
     amount: '1000',
     minerFee: '100',
   });
-
-  useEffect(() => {
-    setFormState({
-      ...formState,
-      token: supportedTokens[0],
-    });
-  }, [supportedTokens]);
 
   if (!library || !chainId) return null;
   if (!account) return <div>Please connect your wallet.</div>;
@@ -121,7 +114,6 @@ const ERC20Form = () => {
           <label className={label}>Token</label>
           <TokenSelect
             selectedToken={formState.token}
-            supportedTokens={supportedTokens}
             setToken={(token) => setFormState({ ...formState, token })}
             inputStyle={inputStyle}
           />
