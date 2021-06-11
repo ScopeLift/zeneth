@@ -7,6 +7,8 @@ import { Wallet } from '@ethersproject/wallet';
 import { ZenethRelayer } from '../src/index';
 import * as ERC20Abi from '../src/abi/ERC20.json';
 import * as SwapBriberAbi from '../src/abi/SwapBriber.json';
+import { mainnetRelayUrl, goerliRelayUrl } from '../src/constants';
+
 // @ts-ignore This is not under the workspace rootDir, but that's fine
 import * as DeployInfo from '../../contracts/deploy-history/goerli-latest.json';
 
@@ -35,21 +37,18 @@ const user = new Wallet('0x6eea9d8bafc2440aa2fb29533f9139b2cce891c89d6088bc74517
 // Define address of our swapAndBribe contract
 const swapAndBribe = new Contract(DeployInfo.contracts.SwapBriber, SwapBriberAbi, goerliProvider);
 
-// Define constants
-const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
-
 describe('Flashbots relayer', () => {
   describe('Initialization', () => {
     it('initializes a relayer instance with mainnet as the default', async () => {
       const zenethRelayer = await ZenethRelayer.create(mainnetProvider, process.env.AUTH_PRIVATE_KEY as string);
       expect(zenethRelayer.provider.connection.url).to.equal(mainnetProviderUrl);
-      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal('https://relay.flashbots.net');
+      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(mainnetRelayUrl);
     });
 
     it('initializes a relayer instance against a Goerli', async () => {
       const zenethRelayer = await ZenethRelayer.create(goerliProvider, process.env.AUTH_PRIVATE_KEY as string);
       expect(zenethRelayer.provider.connection.url).to.equal(goerliProviderUrl);
-      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(GOERLI_RELAY_URL);
+      expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(goerliRelayUrl);
     });
 
     it('throws if initialized with an unsupported network', () => {

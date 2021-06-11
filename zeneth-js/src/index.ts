@@ -7,9 +7,8 @@ import { FlashbotsBundleProvider, FlashbotsOptions } from '@flashbots/ethers-pro
 import { TransactionFactory } from '@ethereumjs/tx';
 import Common from '@ethereumjs/common';
 import { TransactionFragment } from './types';
+import { mainnetRelayUrl, goerliRelayUrl } from './constants';
 
-// Define constants
-const GOERLI_RELAY_URL = 'https://relay-goerli.flashbots.net/';
 export class ZenethRelayer {
   constructor(
     readonly provider: JsonRpcProvider,
@@ -26,7 +25,7 @@ export class ZenethRelayer {
     // If the chainId is 1, set relayUrl to undefined so FlashbotsBundleProvider uses its `DEFAULT_FLASHBOTS_RELAY`
     // parameter for mainnet. If chainId is 5, use the current Goerli relayer. Otherwise, chainId is unsupported
     if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
-    const relayUrl = chainId === 1 ? undefined : GOERLI_RELAY_URL;
+    const relayUrl = chainId === 1 ? mainnetRelayUrl : goerliRelayUrl;
     const common = new Common({ chain: chainId });
     const authSigner = new Wallet(authPrivateKey);
 
