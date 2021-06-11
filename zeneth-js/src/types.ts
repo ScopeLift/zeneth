@@ -12,3 +12,16 @@ export interface TransactionFragment {
   to: string;
   value: BigNumberish;
 }
+
+export type GasNowResponse = {
+  code: number;
+  data: {
+    rapid: number;
+    fast: number;
+    standard: number;
+    slow: number;
+    timestamp: number;
+  };
+};
+
+export type GasNowSpeed = keyof Omit<GasNowResponse['data'], 'timestamp'>;
