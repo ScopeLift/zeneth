@@ -5,7 +5,7 @@
   "productName": "Zeneth",
   "private": true,
   "scripts": {
-    "build": "next build && next export",
+    "build": "rm -rf .next && next build && next export",
     "dev": "next dev",
     "lint": "yarn run prettier && eslint --ext .js,.ts,.tsx ./",
     "precommit": "lint-staged",
