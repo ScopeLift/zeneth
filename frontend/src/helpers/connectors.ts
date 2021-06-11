@@ -11,8 +11,6 @@ export const network = new NetworkConnector({
   defaultChainId: config.defaultNetwork,
 });
 
-console.log(network);
-
 export const injected = new InjectedConnector({
   supportedChainIds: Object.keys(RPC_URLS).map(Number),
 });

@@ -17,11 +17,11 @@
     "strict": false,
     "paths": {
       "components/*": ["./src/components/*"],
+      "data/*": ["./src/data/*"],
+      "helpers/*": ["./src/helpers/*"],
       "hooks/*": ["./src/hooks/*"],
       "config": ["./config"],
-      "data/*": ["./src/data/*"],
-      "types": ["./types"],
-      "helpers/*": ["./src/helpers/*"]
+      "types": ["./types"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
