@@ -24,7 +24,7 @@ const mainnetProvider = new JsonRpcProvider(mainnetProviderUrl);
 const goerliProviderUrl = `https://goerli.infura.io/v3/${infuraId}`;
 const goerliProvider = new JsonRpcProvider(goerliProviderUrl);
 
-// Uniswap addresses (on Goerli)
+// Uniswap V2 addresses (on Goerli)
 const uniRouterAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const wethAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
@@ -34,7 +34,7 @@ const dai = new Contract('0xCdC50DB037373deaeBc004e7548FA233B3ABBa57', ERC20Abi,
 // Setup account of user that has no ETH. This is a random account that was given Goerli testnet tokens and no ETH
 const user = new Wallet('0x6eea9d8bafc2440aa2fb29533f9139b2cce891c89d6088bc74517ea1fbbaf7df', goerliProvider); // address: 0x47550514d0Ed597413ae944e25A62B4bFE28aD55
 
-// Define address of our swapAndBribe contract
+// Define Goerli address of our swapAndBribe contract
 const swapAndBribe = new Contract(DeployInfo.contracts.SwapBriber, SwapBriberAbi, goerliProvider);
 
 describe('Flashbots relayer', () => {
@@ -51,18 +51,17 @@ describe('Flashbots relayer', () => {
       expect(zenethRelayer.flashbotsProvider.connection.url).to.equal(goerliRelayUrl);
     });
 
-    it('throws if initialized with an unsupported network', () => {
+    it('throws if initialized with an unsupported network', async () => {
       const rinkebyProviderUrl = `https://rinkeby.infura.io/v3/${infuraId}`;
       const rinkebyProvider = new JsonRpcProvider(rinkebyProviderUrl);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      expectRejection(
+      await expectRejection(
         ZenethRelayer.create(rinkebyProvider, process.env.AUTH_PRIVATE_KEY as string),
         'Unsupported network'
       );
     });
   });
 
-  describe('Usages', () => {
+  describe('Usage', () => {
     let zenethRelayer: ZenethRelayer;
     const transferAmount = 100n * 10n ** 18n; // 100 DAI
     const feeAmount = 25n * 10n ** 18n; // 25 DAI
@@ -247,10 +246,10 @@ describe('Flashbots relayer', () => {
       });
 
       it('signs transactions correctly', async () => {
+        // TODO more robust test that uses eth_sign to replicate MetaMask behavior. This uses signTransaction which
+        // is currently not supported by MetaMask
         const recipient = Wallet.createRandom();
         const nonce = await goerliProvider.getTransactionCount(user.address);
-
-        // Approach 1, using signTransaction (MetaMask doesn't allow this)
         const tx1 = {
           chainId,
           data: dai.interface.encodeFunctionData('transfer', [recipient.address, transferAmount]),
@@ -261,9 +260,8 @@ describe('Flashbots relayer', () => {
           value: Zero,
         };
         const sig1 = await user.signTransaction(tx1);
-        console.log('sig1: ', sig1);
-
-        // TODO manually verify against signing with MetaMask and hardcode that signature here to compare against sig1
+        expect(sig1).to.have.length.greaterThan(0);
+        expect(typeof sig1 === 'string').to.be.true;
       });
     });
   });

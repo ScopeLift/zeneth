@@ -72,10 +72,7 @@ const save = (value, field, subfield = undefined) => {
 
     // deploy the SwapBriber contract
     const SwapBriber = await ethers.getContractFactory('SwapBriber', adminWallet);
-    const swapBriber = await SwapBriber.deploy(
-      sweepReceiver,
-      sweeper,
-    );
+    const swapBriber = await SwapBriber.deploy(sweepReceiver, sweeper);
     await swapBriber.deployed();
     save(swapBriber.address, 'contracts', 'SwapBriber');
     console.log('SwapBriber contract deployed to address: ', swapBriber.address);
