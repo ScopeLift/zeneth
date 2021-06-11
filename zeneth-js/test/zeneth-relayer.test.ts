@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+//import * as sinon from 'sinon';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Zero, MaxUint256 } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
@@ -11,6 +12,8 @@ import { mainnetRelayUrl, goerliRelayUrl } from '../src/constants';
 
 // @ts-ignore This is not under the workspace rootDir, but that's fine
 import * as DeployInfo from '../../contracts/deploy-history/goerli-latest.json';
+
+//import * as helpers from '../src/helpers'
 
 // Verify environment variables
 const infuraId = process.env.INFURA_ID;
@@ -86,6 +89,7 @@ describe('Flashbots relayer', () => {
 
     describe('Estimates Fees', () => {
       it('does a very simple fee calculation', async () => {
+        //sinon.stub(helpers, "getGasPrice").returns(Promise.resolve(1));
         const flashbotAdjustment = 2;
         const token = zenethSupportedTokens.tokens[0];
         const estimatedGas = token.gasEstimates;

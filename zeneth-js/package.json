@@ -25,6 +25,7 @@
     "@ethereumjs/common": "^2.2.0",
     "@ethereumjs/tx": "^3.1.4",
     "@flashbots/ethers-provider-bundle": "~0.3.1",
+    "axios": "^0.21.1",
     "ethers": "^5.1.0"
   },
   "devDependencies": {
