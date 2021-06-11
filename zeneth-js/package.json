@@ -25,7 +25,7 @@
     "@ethereumjs/common": "^2.2.0",
     "@ethereumjs/tx": "^3.1.4",
     "@flashbots/ethers-provider-bundle": "~0.3.1",
-    "ethers": "^5.1.0"
+    "ethers": "^5.3.1"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
