@@ -9,11 +9,7 @@ import { ZenethRelayer } from '../src/index';
 import * as ERC20Abi from '../src/abi/ERC20.json';
 import * as SwapBriberAbi from '../src/abi/SwapBriber.json';
 import { mainnetRelayUrl, goerliRelayUrl } from '../src/constants';
-
-// @ts-ignore This is not under the workspace rootDir, but that's fine
-import * as DeployInfo from '../../contracts/deploy-history/goerli-latest.json';
-
-//import * as helpers from '../src/helpers'
+import * as DeployInfo from '@scopelift/zeneth-contracts/deploy-history/goerli-latest.json';
 
 // Verify environment variables
 const infuraId = process.env.INFURA_ID;
@@ -30,9 +26,6 @@ const goerliProvider = new JsonRpcProvider(goerliProviderUrl);
 // Uniswap V2 addresses (on Goerli)
 const uniRouterAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const wethAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
-
-// @ts-ignore This is not under the workspace rootDir, but that's fine
-import * as zenethSupportedTokens from '../../frontend/src/data/tokenlist.json';
 
 // Get instance of Goerli DAI
 const dai = new Contract('0xCdC50DB037373deaeBc004e7548FA233B3ABBa57', ERC20Abi, goerliProvider);
@@ -85,24 +78,6 @@ describe('Flashbots relayer', () => {
       const minBalance = transferAmount + feeAmount;
       const userBalance = await dai.balanceOf(user.address);
       expect(userBalance.gt(minBalance), 'Please mint more Goerli DAI to the user to continue with testing').to.be.true;
-    });
-
-    describe('Estimates Fees', () => {
-      it('does a very simple fee calculation', async () => {
-        //sinon.stub(helpers, "getGasPrice").returns(Promise.resolve(1));
-        const flashbotAdjustment = 2;
-        const token = zenethSupportedTokens.tokens[0];
-        const estimatedGas = token.gasEstimates;
-        expect(
-          await zenethRelayer.estimateFee(
-            token.symbol,
-            estimatedGas.approve,
-            estimatedGas.transfer,
-            estimatedGas.swapAndBribe,
-            flashbotAdjustment
-          )
-        ).to.equal(18);
-      });
     });
 
     describe('Sends bundles', () => {

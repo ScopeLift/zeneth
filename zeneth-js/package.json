@@ -39,6 +39,7 @@
     "eslint-plugin-chai-friendly": "^0.6.0",
     "eslint-plugin-import": "^2.20.2",
     "mocha": "^8.3.2",
+    "node-fetch": "^2.6.1",
     "nyc": "^15.1.0",
     "ts-node": "^9.0.0"
   },
