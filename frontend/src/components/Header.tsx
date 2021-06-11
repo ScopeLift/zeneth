@@ -2,7 +2,6 @@ import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
 import { BlockNumber } from 'components/BlockNumber';
 import { Connection } from 'components/Connection';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export const Header = () => {
@@ -11,7 +10,7 @@ export const Header = () => {
     <div className="flex justify-between w-screen">
       <Link href="/">
         <div id="logo" className="flex flex-row mx-5 items-center cursor-pointer">
-          <Image src="/static/images/logo.jpg" alt="Zeneth logo" width="64" height="64" />
+          <img src="/static/images/logo.jpg" alt="Zeneth logo" width="64" height="64" />
           <div className="ml-5">Zeneth: Let your ETH chill</div>
         </div>
       </Link>

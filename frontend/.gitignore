@@ -3,6 +3,7 @@
 node_modules
 
 .next
+out
 
 # Log files
 npm-debug.log*
