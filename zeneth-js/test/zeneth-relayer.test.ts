@@ -143,26 +143,25 @@ describe('Flashbots relayer', () => {
         const sig3 = await user.signTransaction(tx3);
         nonce += 1;
 
-        // SEND BUNDLE
-        const signedTxs = [sig1, sig2, sig3];
-        const validBlocks = 5;
-        const bundlePromises = await zenethRelayer.sendBundle(signedTxs, validBlocks);
-        console.log('bundlePromises', bundlePromises);
-        const responses = await Promise.all(bundlePromises);
-        const results = responses.map((res) => {
-          // If there's an error, return it, otherwise return a promise to wait
-          return 'error' in res ? [res] : res.wait();
-        });
+        // PREPARE BUNDLE
+        const signedTxs = [sig1, sig2, sig3]; // put signed transactions into an array
+        const currentBlock = await goerliProvider.getBlockNumber(); // get block number of most recently mined block
+        const validBlock = currentBlock + 2; // only block number we allow this bundle be mined for
 
-        // TODO handle bundle promises better. This promises will resolve to values of 0, 1, or 2 where:
-        // 0 = BundleIncluded
-        // 1 = BlockPassedWithoutInclusion
-        // 2 = AccountNonceTooHigh
-        console.log('w0: ', await results[0]);
-        console.log('w1: ', await results[1]);
-        console.log('w2: ', await results[2]);
-        console.log('w3: ', await results[3]);
-        console.log('w4: ', await results[4]);
+        // SEND BUNDLE
+        const flashbotsTx = await zenethRelayer.sendBundle(signedTxs, validBlock);
+
+        // OUTPUT ASSERTIONS
+        if ('error' in flashbotsTx) {
+          // Here, flashbotsTx is of type RelayResponseError. For testing we do not expect to see this
+          console.log('RelayResponseError: ', flashbotsTx);
+          throw new Error('Promise resolved to RelayResponseError');
+        }
+
+        // If here, we now flashbotsTx is of type FlashbotsTransactionResponse
+        expect(flashbotsTx.bundleTransactions.length).to.equal(signedTxs.length);
+        const result = await flashbotsTx.wait(); // resolves to 0, 1, or 2 per type FlashbotsBundleResolution
+        expect([0, 1, 2].includes(result)).to.be.true;
       });
 
       it('does not send bundles with transactions that revert', async () => {
@@ -185,7 +184,7 @@ describe('Flashbots relayer', () => {
         const sig1 = await user.signTransaction(tx1);
 
         // SEND BUNDLE
-        const errorMessage = 'Simulation error occurred, exiting. See simulation object for more details';
+        const errorMessage = 'Simulation error occurred, exiting. Please make sure you are sending a valid bundle';
         const signedTxs = [sig1];
         const validBlocks = 1;
         await expectRejection(zenethRelayer.sendBundle(signedTxs, validBlocks), errorMessage);

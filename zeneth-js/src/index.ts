@@ -126,45 +126,36 @@ export class ZenethRelayer {
   /**
    * @notice Sends a flashbots bundle
    * @param txs Array of signed transactions to send
-   * @param validBlocks Starting from the next block, how many total blocks are valid for mining the transactions. A
-   * value of 1 means only the next block is valid, a value of 6 means the next 6 blocks are valid
+   * @param blockNumber A single block number for which this bundle is valid. Recommend using a block number 2 blocks
+   * ahead of the last seen block number to account for propagation time
+   * @param opts Options to specify when sending bundle, see the @flashbots/ethers-provider-bundle's `FlashbotsOptions`
+   * type for more information
+   * @returns Promise which resolves to type `FlashbotsTransaction`. This may resolve to either:
+   *   1. `RelayResponseError`, which looks like `error: { message: string; code: number; };`
+   *   2. `FlashbotsTransactionResponse` which contains 4 properties:
+   *          1. `bundleTransactions` returns an array of the transactions included in the bundle
+   *          2. `wait()` is a Promise which resolves to 0 if your bundle was included, 1 if your bundle was not
+   *              included, or 2 if the nonce was too high (e.g. bundle was previously included, or account sent
+   *              another transaction before the bundle was mined)
+   *          3. `simulate()` is a Promise that resolves to the result of the bundle simulation
+   *          4. `receipts()` is a Promise that resolves to an array of transaction receipts for each transaction in
+   *             the bundle
    */
-  async sendBundle(txs: string[], validBlocks: number, opts?: FlashbotsOptions) {
-    if (validBlocks < 1) throw new Error(`Minimum 'validBlocks' value is 1, got ${validBlocks}`);
-
+  async sendBundle(txs: string[], blockNumber: number, opts?: FlashbotsOptions) {
     // First we sign the bundle of transactions with our auth key
     const flashbotsTxs = txs.map((tx) => ({ signedTransaction: tx }));
     const signedBundle = await this.flashbotsProvider.signBundle(flashbotsTxs);
 
-    // Next we define the targetBlockNumbers, which are "The only block number for which the bundle is to be considered
-    // valid. If you would like more than one block to be targeted, submit multiple rpc calls targeting each specific
-    // block. This value should be higher than the value of getBlockNumber(). Submitting a bundle with a target block
-    // number of the current block, or earlier, is a no-op". we use this to generate an array of:
-    //   `[currentBlockNumber + 1, ..., currentBlockNumber + 1 + validBlocks]`
-    const currentBlockNumber = await this.provider.getBlockNumber();
-    const targetBlocks = getIncrementingArray(validBlocks, currentBlockNumber + 1);
-
-    // Simulate the bundle in the next block
-    const simulation = await this.flashbotsProvider.simulate(signedBundle, targetBlocks[0]);
+    // Simulate the bundle to ensure it does not revert
+    const simulation = await this.flashbotsProvider.simulate(signedBundle, blockNumber);
 
     // Check for errors in the simulation
     if ('error' in simulation || simulation.firstRevert !== undefined || JSON.stringify(simulation).includes('error')) {
       console.log('simulation:', simulation);
-      throw new Error('Simulation error occurred, exiting. See simulation object for more details');
+      throw new Error('Simulation error occurred, exiting. Please make sure you are sending a valid bundle');
     }
 
     // No errors simulating, so send the bundle
-    return targetBlocks.map((block) => this.flashbotsProvider.sendRawBundle(signedBundle, block, opts));
+    return this.flashbotsProvider.sendRawBundle(signedBundle, blockNumber, opts);
   }
 }
-
-// ==================== Helper methods ====================
-
-// Generates an array of length `length` starting with value `startValue` with each element incremented by 1
-const getIncrementingArray = (length: number, startValue: number) => {
-  // Create empty array of length `length` and get the keys of that array
-  const keys = Array(length).keys(); // e.g. if length is 3 this is [0, 1, 2]
-  // `Array.from(x, mapFunction)` creates an array from array `x` but maps the values according to `mapFunction`.
-  // So we map element `i` in the array to block number to `i + startValue`
-  return Array.from(keys, (x) => x + startValue);
-};
