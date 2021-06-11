@@ -18,12 +18,14 @@ export class ZenethRelayer {
 
   /**
    * @notice Returns a new ZenethRelayer instance
+   * @param provider ethers JsonRpcProvider instance
+   * @param authPrivateKey Private key to use for signing flashbots bundles (this private key does not need to hold
+   * funds, as it's strictly used for signing)
+   * @returns ZenethRelayer instance
    */
   static async create(provider: JsonRpcProvider, authPrivateKey: string) {
-    const chainId = (await provider.getNetwork()).chainId;
-
-    // If the chainId is 1, set relayUrl to undefined so FlashbotsBundleProvider uses its `DEFAULT_FLASHBOTS_RELAY`
-    // parameter for mainnet. If chainId is 5, use the current Goerli relayer. Otherwise, chainId is unsupported
+    // Set relayerUrl accordingly based on chain ID
+    const { chainId } = await provider.getNetwork();
     if (chainId !== 1 && chainId !== 5) throw new Error('Unsupported network');
     const relayUrl = chainId === 1 ? mainnetRelayUrl : goerliRelayUrl;
     const common = new Common({ chain: chainId });
@@ -72,7 +74,6 @@ export class ZenethRelayer {
    */
   async populateTransactions(from: string, txs: TransactionFragment[]): Promise<TransactionRequest[]> {
     const initialNonce = await this.provider.getTransactionCount(from);
-    console.log(initialNonce);
     const promises = txs.map((tx, index) => {
       return this.populateTransaction({
         data: tx.data,
