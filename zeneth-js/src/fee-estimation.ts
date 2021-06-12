@@ -6,6 +6,7 @@ import { formatEther, parseUnits } from '@ethersproject/units';
  * @notice Estimates the fee (in base token units) for a bundle
  * @param obj
  * @param obj.tokenAddress Token in which fee will be expressed as units of
+ * @param obj.tokenDecimals Token decimal places
  * @param obj.bundleGasLimit Upper bound gas fee (in wei) for entire bundle
  * @param obj.flashbotsPremiumMultiplier Multiplier for flashbots bribing miner, e.g. 1.05 to add 5%
  * @returns Estimated fee for miner in token base units
