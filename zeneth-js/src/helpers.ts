@@ -1,6 +1,5 @@
 import { GasNowSpeed, GasNowResponse } from './types';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethAddress } from './constants';
 
 const jsonFetch = (url: string) => fetch(url).then((res) => res.json());
 
@@ -11,7 +10,7 @@ const stablecoins = [
 ];
 
 /**
- * @notice Takes a token address or 0xEeEEeeee... and returns the price
+ * @notice Takes a token address and returns the price in USD
  * @param tokenAddress Checksummed token address
  */
 export const getTokenPriceInUsd = async (tokenAddress: string): Promise<number> => {
@@ -19,19 +18,25 @@ export const getTokenPriceInUsd = async (tokenAddress: string): Promise<number> 
     // Return 1 for all stablecoins
     if (stablecoins.includes(tokenAddress)) return 1;
 
-    // Special ethereum case
-    if (tokenAddress === ethAddress) {
-      const coingeckoUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
-      const response: Record<string, { usd: number }> = await jsonFetch(coingeckoUrl);
-      return response.ethereum.usd;
-    }
-
     // Otherwise fetch price and return it
     const coingeckoUrl = `https://api.coingecko.com/api/v3/simple/ethereum?contract_addresses=${tokenAddress}&vs_currencies=usd`;
     const response: Record<string, { usd: number }> = await jsonFetch(coingeckoUrl);
     return response[tokenAddress].usd;
   } catch (e) {
     throw new Error(`Error fetching price for ${tokenAddress}: ${e.message as string}`);
+  }
+};
+
+/**
+ * @notice Returns eth price in USD
+ */
+export const getEthPriceInUsd = async (): Promise<number> => {
+  try {
+    const coingeckoUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+    const response: Record<string, { usd: number }> = await jsonFetch(coingeckoUrl);
+    return response.ethereum.usd;
+  } catch (e) {
+    throw new Error(`Error fetching price for ETH: ${e.message as string}`);
   }
 };
 

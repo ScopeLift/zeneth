@@ -1,5 +1,4 @@
-import { getGasPrice, getTokenPriceInUsd } from './helpers';
-import { ethAddress } from './constants';
+import { getGasPrice, getEthPriceInUsd, getTokenPriceInUsd } from './helpers';
 import { BigNumberish, BigNumber } from '@ethersproject/bignumber';
 import { formatEther, parseUnits } from '@ethersproject/units';
 
@@ -25,7 +24,7 @@ export const estimateFee = async ({
   const [gasPriceInWei, tokenPrice, ethPrice] = await Promise.all([
     getGasPrice(),
     getTokenPriceInUsd(tokenAddress),
-    getTokenPriceInUsd(ethAddress),
+    getEthPriceInUsd(),
   ]);
 
   const bundleGasUsed = BigNumber.from(bundleGasLimit); // total gas needed
