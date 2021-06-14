@@ -25,5 +25,3 @@ export type GasNowResponse = {
 };
 
 export type GasNowSpeed = keyof Omit<GasNowResponse['data'], 'timestamp'>;
-
-export type estimateFeeReturn = { bribeInTokens: BigNumberish; bribeinEth: BigNumberish };
