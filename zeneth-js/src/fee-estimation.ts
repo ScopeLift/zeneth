@@ -1,6 +1,7 @@
 import { getGasPrice, getEthPriceInUsd, getTokenPriceInUsd } from './helpers';
 import { BigNumberish, BigNumber } from '@ethersproject/bignumber';
 import { formatEther, parseUnits } from '@ethersproject/units';
+import { estimateFeeReturn } from './types';
 
 /**
  * @notice Estimates the fee (in base token units) for a bundle
@@ -21,7 +22,7 @@ export const estimateFee = async ({
   tokenDecimals: number;
   bundleGasLimit: BigNumberish;
   flashbotsPremiumMultiplier: number;
-}): Promise<BigNumber> => {
+}): Promise<estimateFeeReturn> => {
   const [gasPriceInWei, tokenPrice, ethPrice] = await Promise.all([
     getGasPrice(),
     getTokenPriceInUsd(tokenAddress),
@@ -34,5 +35,5 @@ export const estimateFee = async ({
   const bundlePriceInEth = +formatEther(scaledBundlePriceInWei); // total gas, denominated in ETH
   const bundlePriceInUsd = bundlePriceInEth * ethPrice; // total gas, denominated in dollars
   const tokensNeededForBribe = parseUnits(String(bundlePriceInUsd / tokenPrice), tokenDecimals); // total gas, demoninated in token
-  return tokensNeededForBribe;
+  return { bribeInTokens: tokensNeededForBribe, bribeinEth: bundlePriceInEth };
 };
