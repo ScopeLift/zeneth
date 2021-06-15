@@ -1,0 +1,25 @@
+{
+  "name": "Zeneth",
+  "version": {
+    "major": 0,
+    "minor": 0,
+    "patch": 1
+  },
+  "keywords": ["zeneth", "flashbots", "mev", "gasless", "defi"],
+  "tokens": [
+    {
+      "chainId": 5,
+      "address": "0xcdc50db037373deaebc004e7548fa233b3abba57",
+      "name": "Dai",
+      "symbol": "DAI",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/9956/thumb/dai-multi-collateral-mcd.png?1574218774",
+      "gasEstimates": {
+        "approve": 47000,
+        "transfer": 54500,
+        "swapAndBribe": 200000
+      }
+    }
+  ],
+  "timestamp": "2021-04-23T20:11:22.472Z"
+}

@@ -2,8 +2,9 @@ import { TokenInfo } from 'types';
 import { Listbox, Transition } from '@headlessui/react';
 import { Dispatch, Fragment, useState, useEffect } from 'react';
 import { SelectorIcon, CheckIcon } from '@heroicons/react/solid';
-import tokenList from 'data/tokenlist.json';
-const supportedTokens = tokenList.tokens;
+import mainnetTokenList from 'data/mainnet.json';
+import goerliTokenList from 'data/goerli.json';
+import { useWeb3React } from '@web3-react/core';
 
 export const TokenSelect = ({
   selectedToken,
@@ -14,6 +15,9 @@ export const TokenSelect = ({
   setToken: Dispatch<TokenInfo>;
   inputStyle: string;
 }) => {
+  const { chainId } = useWeb3React();
+  const tokenList = chainId === 1 ? mainnetTokenList : goerliTokenList;
+  const supportedTokens = tokenList.tokens;
   const [searchString, setSearchString] = useState('');
 
   const handleSearch: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -23,7 +27,7 @@ export const TokenSelect = ({
 
   useEffect(() => {
     setToken(supportedTokens[0]);
-  }, [supportedTokens]);
+  }, [tokenList]);
 
   const filterTokens = (token: TokenInfo) => {
     if (!searchString) return true;
@@ -44,7 +48,7 @@ export const TokenSelect = ({
       className="relative z-20 w-full"
     >
       {({ open }) => {
-        if (!open) setSearchString('');
+        // if (!open) setSearchString('');
         return (
           <>
             <Listbox.Button className={inputStyle}>

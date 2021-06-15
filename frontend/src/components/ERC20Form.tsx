@@ -11,6 +11,7 @@ import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBrib
 import { config } from 'config';
 import { ModalContext } from './Modal';
 import { TokenSelect } from './TokenSelect';
+import { BundleContext } from './BundleContext';
 
 const abi = [
   // Read-Only Functions
@@ -27,6 +28,7 @@ const inputStyle = 'bg-gray-100 p-3 w-full block';
 
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
+  const { sendBundle } = useContext(BundleContext);
   // const { tokenList: supportedTokens } = useContext(ModalContext);
 
   const [formState, setFormState] = useState<{
@@ -58,7 +60,7 @@ const ERC20Form = () => {
     const erc20 = new Contract(token.address, abi);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
-    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY as string);
+    const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
 
     const bribeAmount = parseUnits('.1', 18).toString(); // In ETH
     const transferAmount = parseUnits(amount, token.decimals).toString();
@@ -95,12 +97,8 @@ const ERC20Form = () => {
     console.log(account);
     const signatures = await zenethRelayer.signBundle(account, fragments, library);
     console.log(signatures);
-    const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
-    const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch(config.relayUrl, { method: 'POST', body, headers });
-    console.log('response: ', response);
-    const json = await response.json();
-    console.log('json: ', json);
+    // const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
+    sendBundle(signatures);
   };
 
   const formGroup = 'my-2 flex flex-row items-center rounded';

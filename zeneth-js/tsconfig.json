@@ -14,5 +14,11 @@
     "skipLibCheck": true,
     "target": "es2020"
   },
-  "include": ["./src/**/*", "./src/**/*.json", "./types/**/*", "./test/**/*"]
+  "include": [
+    "./src/**/*",
+    "./src/**/*.json",
+    "./types/**/*",
+    "./test/**/*",
+    "types"
+  ]
 }
