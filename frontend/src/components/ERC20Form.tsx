@@ -6,7 +6,7 @@ import { Contract } from '@ethersproject/contracts';
 import { MaxUint256 } from '@ethersproject/constants';
 import { parseUnits, formatUnits, parseEther } from '@ethersproject/units';
 import { BigNumber } from '@ethersproject/bignumber';
-import { hexlify } from '@ethersproject/bytes';
+import { hexlify, isHexString } from '@ethersproject/bytes';
 import { ZenethRelayer, estimateFee } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
 import { config } from 'config';
@@ -15,6 +15,7 @@ import { BundleContext } from './BundleContext';
 import { ModalContext } from './ModalContext';
 import { NotificationContext } from './NotificationContext';
 import { LightningBoltIcon } from '@heroicons/react/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/solid';
 
 const abi = [
   // Read-Only Functions
@@ -27,15 +28,22 @@ const abi = [
   'function approve(address spender, uint256 value) returns (boolean)',
 ];
 
-const inputStyle = 'bg-gray-100 p-3 w-full block';
+const inputBaseStyle =
+  'bg-gray-100 p-3 w-full block focus:outline-none focus:ring-indigo-600 focus:border-indigo-600 rounded-md';
+
+// 'block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md';
 
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
   const { sendBundle } = useContext(BundleContext);
   const { setModal, clearModal } = useContext(ModalContext);
   const { notify } = useContext(NotificationContext);
+  const [userTokenBalance, setUserTokenBalance] = useState<BigNumber>(BigNumber.from(3000000));
   const [bribeInTokens, setBribeInTokens] = useState<BigNumber>();
   const [bribeInEth, setBribeInEth] = useState<BigNumber>();
+  const [showAddressValidationError, setShowAddressValidationError] = useState<boolean>(false);
+  const [showAmountValidationError, setShowAmountValidationError] = useState<boolean>(false);
+
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
@@ -47,6 +55,19 @@ const ERC20Form = () => {
     amount: '',
     bribeMultiplier: config.flashbotsPremiumMultipliers[0],
   });
+
+  useEffect(() => {
+    if (!formState.token?.address) return;
+    const getBalance = async () => {
+      console.log(formState.token.address);
+      console.log(abi);
+      console.log(account);
+      const contract = new Contract(formState.token.address, abi, library);
+      const balance = await contract.balanceOf(account);
+      setUserTokenBalance(balance);
+    };
+    getBalance();
+  }, [formState.token?.address]);
 
   useEffect(() => {
     const { token, bribeMultiplier } = formState;
@@ -75,6 +96,25 @@ const ERC20Form = () => {
       ...formState,
       [e.target.name]: value,
     });
+  };
+
+  const validateAddress = (e) => {
+    if (!isHexString(formState.recipientAddress) || formState.recipientAddress.length !== 42) {
+      setShowAddressValidationError(true);
+    } else {
+      setShowAddressValidationError(false);
+    }
+  };
+
+  const validateAmount = (e) => {
+    if (
+      +formState.amount + +formatUnits(bribeInTokens, formState.token.decimals) >
+      +formatUnits(userTokenBalance, formState.token.decimals)
+    ) {
+      setShowAmountValidationError(true);
+    } else {
+      setShowAmountValidationError(false);
+    }
   };
 
   const doSubmit = async (e: React.FormEvent) => {
@@ -134,7 +174,7 @@ const ERC20Form = () => {
 
   const formGroup = 'my-2 flex flex-row items-center rounded';
   const label = 'w-24 text-sm block self-center flex-shrink-0';
-
+  const submitDisabled = showAddressValidationError && showAmountValidationError;
   return (
     <div className="shadow-lg p-7 bg-gradient-to-br from-red-200 to-purple-200 rounded-lg">
       <form className="flex flex-col" spellCheck="false">
@@ -144,29 +184,48 @@ const ERC20Form = () => {
           <TokenSelect
             selectedToken={formState.token}
             setToken={(token) => setFormState({ ...formState, token })}
-            inputStyle={inputStyle}
+            inputStyle={inputBaseStyle}
           />
         </div>
         <div className={formGroup}>
           <label className={label}>Recipient</label>
-          <input
-            name="recipientAddress"
-            placeholder="0x123...def"
-            value={formState.recipientAddress}
-            className={inputStyle}
-            onChange={handleChange}
-          />
+          <div className="mt-1 relative rounded-md shadow-sm w-full">
+            <input
+              name="recipientAddress"
+              placeholder="0x123...def"
+              value={formState.recipientAddress}
+              className={`${inputBaseStyle} ${showAddressValidationError ? 'border-red-300 text-red-900' : ''}`}
+              onChange={handleChange}
+              onBlur={validateAddress}
+            />{' '}
+            {showAddressValidationError && (
+              <p className="mt-1 mb-2 text-sm text-red-600" id="email-error">
+                Please enter a valid Ethereum address.
+              </p>
+            )}
+          </div>
         </div>
         <div className={formGroup}>
           <label className={label}>Amount</label>
-          <input
-            placeholder="100"
-            name="amount"
-            value={formState.amount}
-            className={inputStyle}
-            onChange={handleChange}
-          />
-          <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
+          <div className="mt-1 relative rounded-md shadow-sm w-full">
+            <div className="flex">
+              <input
+                placeholder="100"
+                name="amount"
+                value={formState.amount}
+                className={`${inputBaseStyle} ${showAmountValidationError ? 'border-red-300 text-red-900' : ''}`}
+                onChange={handleChange}
+                onBlur={validateAmount}
+              />
+              <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
+            </div>
+            {showAmountValidationError && (
+              <p className="mt-1 mb-2 text-sm text-red-600" id="email-error">
+                Your balance of {formatUnits(userTokenBalance, formState.token.decimals)} {formState.token.symbol} is
+                lower than total.
+              </p>
+            )}
+          </div>
         </div>
         <div className={formGroup}>
           <label className={label}>Miner Incentive Multiplier</label>
@@ -204,11 +263,17 @@ const ERC20Form = () => {
         </div>
         <button
           type="button"
-          className="group mx-auto mt-5 inline-flex justify-center items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className={`group mx-auto mt-5 inline-flex justify-center items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+            submitDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 '
+          }`}
+          disabled={submitDisabled}
           onClick={doSubmit}
         >
           Submit
-          <LightningBoltIcon className="ml-3 -mr-1 h-5 w-5 group-hover:text-yellow-400" aria-hidden="true" />
+          <LightningBoltIcon
+            className={`ml-3 -mr-1 h-5 w-5 ${submitDisabled ? '' : 'group-hover:text-yellow-400'}`}
+            aria-hidden="true"
+          />
         </button>
       </form>
     </div>
