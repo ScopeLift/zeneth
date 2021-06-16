@@ -3,6 +3,7 @@ import { ChainContext } from './ChainContext';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
 import { ZenethRelayer } from '@scopelift/zeneth-js';
+import { NotificationContext } from './NotificationContext';
 
 type ContextProps = {
   signedBundle: string[] | undefined;
@@ -21,24 +22,40 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
   const [signedBundle, setSignedBundle] = useState<string[]>();
   const sendBundle = setSignedBundle;
   const { blockNumber } = useContext(ChainContext);
+  const { notify } = useContext(NotificationContext);
   const bundleStatus = 'hi';
-  let responses;
 
   useEffect(() => {
     const sendBundle = async () => {
+      const targetBlock = blockNumber + 2;
       if (!library || !signedBundle) return;
-      const relayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
-      const response = await relayer.sendBundle(signedBundle, blockNumber + 2);
-      if (response.error) {
-        alert(response.error.message);
-        return;
-      }
-      const flashbotsResponse = await response.wait();
-      console.log(flashbotsResponse);
-      if (flashbotsResponse === 0) {
+      try {
+        console.log(`sending bundle for block ${targetBlock}`);
+        const relayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
+        const response = await relayer.sendBundle(signedBundle, targetBlock);
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        const flashbotsResponse = await response.wait();
+        console.log(flashbotsResponse);
+        if (flashbotsResponse === 0) {
+          setSignedBundle(undefined);
+          notify({
+            heading: 'Bundle mined',
+            type: 'success',
+            body: `Bundle mined in block ${targetBlock}! Check console for receipt details`,
+          });
+          console.log(await response.receipts());
+        } else {
+          notify({
+            heading: 'Bundle not mined, retrying',
+            type: 'info',
+            body: `Block ${targetBlock}: bundle submitted but not mined, retrying...`,
+          });
+        }
+      } catch (e) {
         setSignedBundle(undefined);
-        console.log('bundle mined!');
-        console.log(await response.receipts());
+        notify({ heading: 'Error', type: 'error', body: `Block ${targetBlock}: ${e.message as string}` });
       }
     };
     sendBundle();
@@ -56,32 +73,3 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
     </BundleContext.Provider>
   );
 };
-// export const sendUsersBundle = async ({
-//   txs,
-//   provider,
-//   relayer,
-// }: {
-//   txs: string[];
-//   provider: JsonRpcProvider;
-//   relayer: ZenethRelayer;
-// }) => {
-//   const currentBlockNumber = await provider.getBlockNumber(); // get last mined block number
-//   let nextBundleBlock = currentBlockNumber + 2;
-
-//   // First bundle attempt
-//   const response = await relayer.sendBundle(txs, nextBundleBlock);
-//   const responses = [response];
-
-//   let wasMined = false;
-//   provider.on('block', async (block) => {
-//     while (!wasMined) {
-//       nextBundleBlock = block.number + 2;
-//       const response = await relayer.sendBundle(txs, nextBundleBlock);
-//       responses.push(response);
-//     }
-//     return null;
-//   });
-
-//   // For each response in responses, .wait() on it, and if it resolves to 0 it was mined.
-//   // If mined, you can get the receipts with `await response.receipts()`
-// };

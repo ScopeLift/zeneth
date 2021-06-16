@@ -54,9 +54,9 @@ const ConnectionModal = ({ props }) => {
           const activating = currentConnector === activatingConnector;
           const connected = currentConnector === connector;
           const disabled = !triedEager || !!activatingConnector || connected || !!error;
-          if (connectorName === 'Network') return <div></div>;
+          if (connectorName === 'Network') return <></>;
           return (
-            <div className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between" key={connectorName}>
+            <div key={connectorName} className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between">
               <button
                 className={'mx-4 w-3/5 font-semibold ' + (connected ? 'border-green-300' : '')}
                 onClick={async () => {
@@ -79,7 +79,7 @@ const ConnectionModal = ({ props }) => {
 };
 
 export const Connection = () => {
-  const { connector, library, chainId, account, activate, deactivate, active, error } = useWeb3React<Web3Provider>();
+  const { connector, account, activate, active, error } = useWeb3React<Web3Provider>();
   const { setModal, clearModal } = useContext(ModalContext);
   const { setToast } = useContext(ToastContext);
   useEffect(() => {

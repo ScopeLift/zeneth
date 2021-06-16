@@ -97,7 +97,6 @@ const ERC20Form = () => {
     console.log(account);
     const signatures = await zenethRelayer.signBundle(account, fragments, library);
     console.log(signatures);
-    // const body = JSON.stringify({ txs: signatures, blocks: 10, chainId });
     sendBundle(signatures);
   };
 

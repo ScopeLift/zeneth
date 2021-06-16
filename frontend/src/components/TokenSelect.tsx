@@ -45,10 +45,10 @@ export const TokenSelect = ({
         setSearchString('');
         setToken(val);
       }}
-      className="relative z-20 w-full"
+      className="relative z-11 w-full"
     >
       {({ open }) => {
-        // if (!open) setSearchString('');
+        if (!open && searchString) setSearchString('');
         return (
           <>
             <Listbox.Button className={inputStyle}>
