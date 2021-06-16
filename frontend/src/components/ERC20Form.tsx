@@ -9,9 +9,10 @@ import { hexlify } from '@ethersproject/bytes';
 import { ZenethRelayer } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
 import { config } from 'config';
-import { ModalContext } from './Modal';
 import { TokenSelect } from './TokenSelect';
 import { BundleContext } from './BundleContext';
+import { ModalContext } from './ModalContext';
+import { NotificationContext } from './NotificationContext';
 
 const abi = [
   // Read-Only Functions
@@ -29,8 +30,8 @@ const inputStyle = 'bg-gray-100 p-3 w-full block';
 const ERC20Form = () => {
   const { account, library, chainId } = useWeb3React<Web3Provider>();
   const { sendBundle } = useContext(BundleContext);
-  // const { tokenList: supportedTokens } = useContext(ModalContext);
-
+  const { setModal, clearModal } = useContext(ModalContext);
+  const { notify } = useContext(NotificationContext);
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
@@ -95,9 +96,21 @@ const ERC20Form = () => {
     ];
     console.log(fragments);
     console.log(account);
-    const signatures = await zenethRelayer.signBundle(account, fragments, library);
-    console.log(signatures);
-    sendBundle(signatures);
+    setModal({
+      content: (
+        <div>
+          Please use MetaMask to sign all {fragments.length} of the transactions that will be included in your bundle!
+        </div>
+      ),
+    });
+    try {
+      const signatures = await zenethRelayer.signBundle(account, fragments, library);
+      console.log(signatures);
+      sendBundle(signatures);
+    } catch (e) {
+      notify({ type: 'error', heading: 'Error signing bundle', body: e.message });
+    }
+    clearModal();
   };
 
   const formGroup = 'my-2 flex flex-row items-center rounded';

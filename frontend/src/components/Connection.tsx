@@ -3,7 +3,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { useWeb3React, UnsupportedChainIdError } from '@web3-react/core';
 import { useEagerConnect, useInactiveListener } from 'hooks/react-web3';
 import { network, injected } from 'helpers/connectors';
-import { ModalContext } from 'components/Modal';
+import { ModalContext } from 'components/ModalContext';
 import { ToastContext } from 'components/Toast';
 import { XIcon } from '@heroicons/react/solid';
 import {
@@ -54,7 +54,7 @@ const ConnectionModal = ({ props }) => {
           const activating = currentConnector === activatingConnector;
           const connected = currentConnector === connector;
           const disabled = !triedEager || !!activatingConnector || connected || !!error;
-          if (connectorName === 'Network') return <></>;
+          if (connectorName === 'Network') return <div key={connectorName}></div>;
           return (
             <div key={connectorName} className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between">
               <button
@@ -131,7 +131,7 @@ export const Connection = () => {
           }}
         />
       ),
-      styleClass: 'sm:w-3/4 md:w-1/2 lg:w-1/3',
+      style: 'sm:w-3/4 md:w-1/2 lg:w-1/3',
     });
   };
 

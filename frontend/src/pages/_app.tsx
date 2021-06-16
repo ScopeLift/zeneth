@@ -4,7 +4,7 @@ import { FC } from 'react';
 import Header from 'components/Header';
 import { Web3Provider } from '@ethersproject/providers';
 import { Web3ReactProvider } from '@web3-react/core';
-import { WithModal } from 'components/Modal';
+import { WithModal } from 'components/ModalContext';
 import { WithChainContext } from 'components/ChainContext';
 import Footer from 'components/Footer';
 import { WithBundleManager } from 'components/BundleContext';
