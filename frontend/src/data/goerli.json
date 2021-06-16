@@ -15,9 +15,9 @@
       "decimals": 18,
       "logoURI": "https://assets.coingecko.com/coins/images/9956/thumb/dai-multi-collateral-mcd.png?1574218774",
       "gasEstimates": {
-        "approve": 47000,
-        "transfer": 54500,
-        "swapAndBribe": 200000
+        "approve": 50000,
+        "transfer": 56000,
+        "swapAndBribe": 225000
       }
     }
   ],
