@@ -5,6 +5,7 @@ import { TokenInfo } from 'types';
 import { Contract } from '@ethersproject/contracts';
 import { MaxUint256 } from '@ethersproject/constants';
 import { parseUnits, formatUnits, parseEther } from '@ethersproject/units';
+import { BigNumber } from '@ethersproject/bignumber';
 import { hexlify } from '@ethersproject/bytes';
 import { ZenethRelayer, estimateFee } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
@@ -13,6 +14,7 @@ import { TokenSelect } from './TokenSelect';
 import { BundleContext } from './BundleContext';
 import { ModalContext } from './ModalContext';
 import { NotificationContext } from './NotificationContext';
+import { LightningBoltIcon } from '@heroicons/react/outline';
 
 const abi = [
   // Read-Only Functions
@@ -32,8 +34,8 @@ const ERC20Form = () => {
   const { sendBundle } = useContext(BundleContext);
   const { setModal, clearModal } = useContext(ModalContext);
   const { notify } = useContext(NotificationContext);
-  const [bribeInTokens, setBribeInTokens] = useState('0');
-  const [bribeInEth, setBribeInEth] = useState('0');
+  const [bribeInTokens, setBribeInTokens] = useState<BigNumber>();
+  const [bribeInEth, setBribeInEth] = useState<BigNumber>();
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
@@ -42,8 +44,8 @@ const ERC20Form = () => {
   }>({
     token: undefined,
     recipientAddress: '',
-    amount: '1000',
-    bribeMultiplier: 1,
+    amount: '',
+    bribeMultiplier: config.flashbotsPremiumMultipliers[0],
   });
 
   useEffect(() => {
@@ -56,8 +58,10 @@ const ERC20Form = () => {
         bundleGasLimit: Object.values(token.gasEstimates).reduce((x: number, y: number) => x + y),
         flashbotsPremiumMultiplier: bribeMultiplier,
       });
-      setBribeInTokens(bribeInTokens.toString());
-      setBribeInEth(bribeInEth.toString());
+      const relayerPadding = BigNumber.from((config.relayerFeePadding + 1) * 100).div(100);
+
+      setBribeInTokens(bribeInTokens.mul(relayerPadding));
+      setBribeInEth(bribeInEth.mul(relayerPadding));
     };
     getBribe();
   }, [formState.token?.address, formState.bribeMultiplier]);
@@ -81,7 +85,7 @@ const ERC20Form = () => {
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
     const transferAmount = parseUnits(amount, token.decimals).toString();
-
+    console.log('bribe in tokens ', bribeInTokens.toString(), '\nbribe in eth, ', bribeInEth.toString());
     const fragments = [
       {
         data: erc20.interface.encodeFunctionData('transfer', [recipientAddress, transferAmount]),
@@ -99,7 +103,7 @@ const ERC20Form = () => {
         data: swapBriberContract.interface.encodeFunctionData('swapAndBribe', [
           erc20.address, // token to swap
           bribeInTokens, // fee in tokens
-          parseEther(bribeInEth), // bribe amount in ETH. less than or equal to DAI from above
+          chainId === 5 ? parseEther('0.0000000000000001') : bribeInEth, // bribe amount in ETH. less than or equal to DAI from above
           uniswapRouter, // uniswap router address
           [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
@@ -129,10 +133,10 @@ const ERC20Form = () => {
   };
 
   const formGroup = 'my-2 flex flex-row items-center rounded';
-  const label = 'w-24 block self-center flex-shrink-0';
+  const label = 'w-24 text-sm block self-center flex-shrink-0';
 
   return (
-    <div className="shadow-lg p-7 bg-gradient-to-br from-red-300 to-purple-400 rounded-lg">
+    <div className="shadow-lg p-7 bg-gradient-to-br from-red-200 to-purple-200 rounded-lg">
       <form className="flex flex-col" spellCheck="false">
         <h1 className="text-2xl mb-7 text-gray-700">Gasless Token Transfer</h1>
         <div className={formGroup}>
@@ -147,6 +151,7 @@ const ERC20Form = () => {
           <label className={label}>Recipient</label>
           <input
             name="recipientAddress"
+            placeholder="0x123...def"
             value={formState.recipientAddress}
             className={inputStyle}
             onChange={handleChange}
@@ -154,20 +159,56 @@ const ERC20Form = () => {
         </div>
         <div className={formGroup}>
           <label className={label}>Amount</label>
-          <input name="amount" value={formState.amount} className={inputStyle} onChange={handleChange} />
-          <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
-        </div>
-        <div className={formGroup}>
-          <label className={label}>Fee</label>
           <input
-            value={bribeInTokens ? formatUnits(bribeInTokens, formState.token.decimals) : undefined}
+            placeholder="100"
+            name="amount"
+            value={formState.amount}
             className={inputStyle}
-            disabled
+            onChange={handleChange}
           />
           <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
         </div>
-        <button className="mt-5 p-3 bg-blue-100 rounded opacity-90 hover:opacity-100 text-lg" onClick={doSubmit}>
+        <div className={formGroup}>
+          <label className={label}>Miner Incentive Multiplier</label>
+          <span className="relative z-0 inline-flex shadow-sm rounded-md">
+            {config.flashbotsPremiumMultipliers.map((multiplier) => {
+              const active = multiplier === formState.bribeMultiplier;
+              return (
+                <button
+                  key={multiplier}
+                  type="button"
+                  onClick={() => setFormState({ ...formState, bribeMultiplier: multiplier })}
+                  className={`relative mr-2 rounded-md inline-flex items-center px-4 py-2 border border-gray-300 bg-white ${
+                    active ? 'border-indigo-600 text-indigo-600' : 'border-gray-300'
+                  } font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
+                >
+                  {`${multiplier}x`}
+                </button>
+              );
+            })}
+          </span>
+        </div>
+        <div className={formGroup}>
+          <label className={label}>Fee</label>
+          <div className="border border-gray-200 bg-white bg-opacity-40 rounded-md py-2 px-4">
+            {bribeInTokens ? formatUnits(bribeInTokens, formState.token.decimals) : undefined}{' '}
+            {formState.token?.symbol || ''}
+          </div>
+        </div>
+        <div className={formGroup}>
+          <label className={label + ' font-semibold'}>Total</label>
+          <div className="border border-gray-200 font-semibold bg-white bg-opacity-40 rounded-md py-2 px-4">
+            {bribeInTokens ? +formatUnits(bribeInTokens, formState.token.decimals) + +formState.amount : undefined}{' '}
+            {formState.token?.symbol || ''}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="group mx-auto mt-5 inline-flex justify-center items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          onClick={doSubmit}
+        >
           Submit
+          <LightningBoltIcon className="ml-3 -mr-1 h-5 w-5 group-hover:text-yellow-400" aria-hidden="true" />
         </button>
       </form>
     </div>

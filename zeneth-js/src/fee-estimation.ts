@@ -21,7 +21,7 @@ export const estimateFee = async ({
   tokenDecimals: number;
   bundleGasLimit: BigNumberish;
   flashbotsPremiumMultiplier: number;
-}): Promise<{ bribeInTokens: BigNumberish; bribeInEth: BigNumberish }> => {
+}): Promise<{ bribeInTokens: BigNumber; bribeInEth: BigNumber }> => {
   const [gasPriceInWei, tokenPrice, ethPrice] = await Promise.all([
     getGasPrice(),
     getTokenPriceInUsd(tokenAddress),
@@ -34,5 +34,5 @@ export const estimateFee = async ({
   const bundlePriceInEth = +formatEther(scaledBundlePriceInWei); // total gas, denominated in ETH
   const bundlePriceInUsd = bundlePriceInEth * ethPrice; // total gas, denominated in dollars
   const tokensNeededForBribe = parseUnits(String(bundlePriceInUsd / tokenPrice), tokenDecimals); // total gas, demoninated in token
-  return { bribeInTokens: tokensNeededForBribe, bribeInEth: bundlePriceInEth };
+  return { bribeInTokens: tokensNeededForBribe, bribeInEth: scaledBundlePriceInWei };
 };

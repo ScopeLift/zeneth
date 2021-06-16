@@ -3,7 +3,7 @@ import { AppConfig } from 'types';
 export const config: AppConfig = {
   defaultNetwork: 5,
   relayerFeePadding: 0.05,
-  flashbotsPremiumMultipliers: [1.15, 1.5, 1.8],
+  flashbotsPremiumMultipliers: [1.5, 2, 2.5, 3],
   networks: {
     1: {
       name: 'Mainnet',

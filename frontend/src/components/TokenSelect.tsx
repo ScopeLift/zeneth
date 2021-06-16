@@ -54,7 +54,7 @@ export const TokenSelect = ({
             <Listbox.Button className={inputStyle}>
               {selectedToken ? (
                 <div className="flex items-center mr-4">
-                  <img src={selectedToken.logoURI} alt="" className="flex-shrink-0 h-6 w-6 rounded-full mr-2" />
+                  <img src={selectedToken.logoURI} alt="" className="flex-shrink-0 h-5 w-5 mr-2" />
                   <div className="mr-2">{selectedToken.symbol}</div>
                   <div className="truncate text-gray-400 w-72 text-xs font-mono">{selectedToken.address}</div>
                 </div>
@@ -85,7 +85,7 @@ export const TokenSelect = ({
                           active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
                         }`}
                       >
-                        <img src={token.logoURI} alt="" className="flex-shrink-0 h-6 w-6 rounded-full mr-2" />
+                        <img src={token.logoURI} alt="" className="flex-shrink-0 h-5 w-5 mr-2" />
                         <div className="mr-2">{token.symbol}</div>
                         <div className="truncate text-gray-400 text-xs font-mono"> {token.address}</div>
                         {selected ? (
