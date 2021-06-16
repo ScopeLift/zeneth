@@ -1,12 +1,12 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
 import { TokenInfo } from 'types';
 import { Contract } from '@ethersproject/contracts';
 import { MaxUint256 } from '@ethersproject/constants';
-import { parseUnits } from '@ethersproject/units';
+import { parseUnits, formatUnits, parseEther } from '@ethersproject/units';
 import { hexlify } from '@ethersproject/bytes';
-import { ZenethRelayer } from '@scopelift/zeneth-js';
+import { ZenethRelayer, estimateFee } from '@scopelift/zeneth-js';
 import SwapBriber from '@scopelift/zeneth-contracts/artifacts/contracts/SwapBriber.sol/SwapBriber.json';
 import { config } from 'config';
 import { TokenSelect } from './TokenSelect';
@@ -32,17 +32,35 @@ const ERC20Form = () => {
   const { sendBundle } = useContext(BundleContext);
   const { setModal, clearModal } = useContext(ModalContext);
   const { notify } = useContext(NotificationContext);
+  const [bribeInTokens, setBribeInTokens] = useState('0');
+  const [bribeInEth, setBribeInEth] = useState('0');
   const [formState, setFormState] = useState<{
     token: TokenInfo | undefined;
     recipientAddress: string;
     amount: string;
-    minerFee: string;
+    bribeMultiplier: number;
   }>({
     token: undefined,
     recipientAddress: '',
     amount: '1000',
-    minerFee: '100',
+    bribeMultiplier: 1,
   });
+
+  useEffect(() => {
+    const { token, bribeMultiplier } = formState;
+    if (!token) return;
+    const getBribe = async () => {
+      const { bribeInTokens, bribeInEth } = await estimateFee({
+        tokenAddress: token.address,
+        tokenDecimals: token.decimals,
+        bundleGasLimit: Object.values(token.gasEstimates).reduce((x: number, y: number) => x + y),
+        flashbotsPremiumMultiplier: bribeMultiplier,
+      });
+      setBribeInTokens(bribeInTokens.toString());
+      setBribeInEth(bribeInEth.toString());
+    };
+    getBribe();
+  }, [formState.token?.address, formState.bribeMultiplier]);
 
   if (!library || !chainId) return null;
   if (!account) return <div>Please connect your wallet.</div>;
@@ -57,39 +75,36 @@ const ERC20Form = () => {
 
   const doSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { token, recipientAddress, amount, minerFee } = formState;
+    const { token, recipientAddress, amount } = formState;
     const erc20 = new Contract(token.address, abi);
     const { swapBriber, weth, uniswapRouter } = config.networks[chainId].addresses;
     const swapBriberContract = new Contract(swapBriber, SwapBriber.abi);
     const zenethRelayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
-
-    const bribeAmount = parseUnits('.1', 18).toString(); // In ETH
     const transferAmount = parseUnits(amount, token.decimals).toString();
-    const relayAmount = parseUnits(minerFee, token.decimals).toString();
 
     const fragments = [
       {
         data: erc20.interface.encodeFunctionData('transfer', [recipientAddress, transferAmount]),
-        gasLimit: hexlify(250000),
+        gasLimit: hexlify(token.gasEstimates.transfer),
         to: erc20.address,
         value: '0x0',
       },
       {
         data: erc20.interface.encodeFunctionData('approve', [swapBriber, MaxUint256.toString()]),
-        gasLimit: hexlify(250000),
+        gasLimit: hexlify(token.gasEstimates.approve),
         to: erc20.address,
         value: '0x0',
       },
       {
         data: swapBriberContract.interface.encodeFunctionData('swapAndBribe', [
           erc20.address, // token to swap
-          relayAmount, // fee in tokens
-          bribeAmount, // bribe amount in ETH. less than or equal to DAI from above
+          bribeInTokens, // fee in tokens
+          parseEther(bribeInEth), // bribe amount in ETH. less than or equal to DAI from above
           uniswapRouter, // uniswap router address
           [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
         ]),
-        gasLimit: hexlify(250000),
+        gasLimit: hexlify(token.gasEstimates.swapAndBribe),
         to: swapBriber,
         value: '0x0',
       },
@@ -144,7 +159,11 @@ const ERC20Form = () => {
         </div>
         <div className={formGroup}>
           <label className={label}>Fee</label>
-          <input name="minerFee" value={formState.minerFee} className={inputStyle} onChange={handleChange} />
+          <input
+            value={bribeInTokens ? formatUnits(bribeInTokens, formState.token.decimals) : undefined}
+            className={inputStyle}
+            disabled
+          />
           <div className="p-3 bg-gray-200">{formState.token?.symbol || ''}</div>
         </div>
         <button className="mt-5 p-3 bg-blue-100 rounded opacity-90 hover:opacity-100 text-lg" onClick={doSubmit}>

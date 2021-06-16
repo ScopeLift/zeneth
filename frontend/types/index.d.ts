@@ -1,4 +1,12 @@
-export { TokenList, TokenInfo } from '@uniswap/token-lists/dist/types';
+import { TokenList as UniTokenList, TokenInfo as UniTokenInfo } from '@uniswap/token-lists/dist/types';
+
+export interface TokenInfo extends UniTokenInfo {
+  gasEstimates: Record<string, number>;
+}
+
+export interface TokenList extends UniTokenList {
+  tokens: TokenInfo[];
+}
 
 type NetworkEntry = {
   name: string;
@@ -9,5 +17,6 @@ type NetworkEntry = {
 export type AppConfig = {
   networks: Record<number, NetworkEntry>;
   defaultNetwork: number;
-  relayUrl: string;
+  relayerFeePadding: number;
+  flashbotsPremiumMultipliers: number[];
 };

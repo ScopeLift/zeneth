@@ -2,7 +2,8 @@ import { AppConfig } from 'types';
 
 export const config: AppConfig = {
   defaultNetwork: 5,
-  relayUrl: 'http://localhost:3001/relay',
+  relayerFeePadding: 0.05,
+  flashbotsPremiumMultipliers: [1.15, 1.5, 1.8],
   networks: {
     1: {
       name: 'Mainnet',
