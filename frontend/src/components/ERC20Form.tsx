@@ -79,10 +79,10 @@ const ERC20Form = () => {
         bundleGasLimit: Object.values(token.gasEstimates).reduce((x: number, y: number) => x + y),
         flashbotsPremiumMultiplier: bribeMultiplier,
       });
-      const relayerPadding = BigNumber.from((config.relayerFeePadding + 1) * 100).div(100);
+      const addRelayerPad = (bn: BigNumber) => bn.mul((config.relayerFeePadding + 1) * 100).div(100);
 
-      setBribeInTokens(bribeInTokens.mul(relayerPadding));
-      setBribeInEth(bribeInEth.mul(relayerPadding));
+      setBribeInTokens(addRelayerPad(bribeInTokens));
+      setBribeInEth(bribeInEth);
     };
     getBribe();
   }, [formState.token?.address, formState.bribeMultiplier]);
@@ -143,7 +143,7 @@ const ERC20Form = () => {
         data: swapBriberContract.interface.encodeFunctionData('swapAndBribe', [
           erc20.address, // token to swap
           bribeInTokens, // fee in tokens
-          chainId === 5 ? parseEther('0.0000000000000001') : bribeInEth, // bribe amount in ETH. less than or equal to DAI from above
+          chainId === 5 ? bribeInEth.div(6).mul(5) : bribeInEth, // bribe amount in ETH. less than or equal to DAI from above
           uniswapRouter, // uniswap router address
           [erc20.address, weth], // path of swap
           '2000000000', // really big deadline
