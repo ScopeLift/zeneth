@@ -26,7 +26,8 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
   const bundleStatus = 'hi';
 
   useEffect(() => {
-    const sendBundle = async () => {
+    const abortController = new AbortController();
+    const sendBundle = async (abortSignal) => {
       const targetBlock = blockNumber + 2;
       if (!library || !signedBundle) return;
       try {
@@ -36,7 +37,15 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
         if (response.error) {
           throw new Error(response.error);
         }
-        const flashbotsResponse = await response.wait();
+        const flashbotsResponse = await Promise.race([
+          response.wait(),
+          new Promise((_resolve, reject) => {
+            abortSignal.addEventListener('abort', () => {
+              const error = new Error('bundle mined');
+              reject(error);
+            });
+          }),
+        ]);
         console.log(flashbotsResponse);
         if (flashbotsResponse === 0) {
           setSignedBundle(undefined);
@@ -55,10 +64,11 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
         }
       } catch (e) {
         setSignedBundle(undefined);
+        if (e.message === 'bundle mined') return;
         notify({ heading: 'Error', type: 'error', body: `Block ${targetBlock}: ${e.message as string}` });
       }
     };
-    sendBundle();
+    sendBundle(abortController.signal);
   }, [blockNumber, library, signedBundle]);
 
   return (
