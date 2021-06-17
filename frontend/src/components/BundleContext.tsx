@@ -1,4 +1,4 @@
-import { createContext, useState, ReactNode, useContext, Dispatch, useEffect } from 'react';
+import { createContext, useState, ReactNode, useContext, Dispatch, useEffect, useRef } from 'react';
 import { ChainContext } from './ChainContext';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
@@ -20,18 +20,20 @@ export const BundleContext = createContext<ContextProps>({
 export const WithBundleManager = ({ children }: { children: ReactNode }) => {
   const { library } = useWeb3React<Web3Provider>();
   const [signedBundle, setSignedBundle] = useState<string[]>();
-  const sendBundle = setSignedBundle;
+
   const { blockNumber } = useContext(ChainContext);
   const { notify, clearNotifications } = useContext(NotificationContext);
-  const [bundleStatus, setBundleStatus] = useState<'pending' | 'error' | 'success'>();
-
+  const bundleStatus = useRef<'pending' | 'error' | 'success'>();
+  const sendBundle = (bundle) => {
+    bundleStatus.current = 'pending';
+    setSignedBundle(bundle);
+  };
   useEffect(() => {
+    if (!library || !signedBundle) return;
     const abortController = new AbortController();
     const sendBundle = async (abortSignal) => {
       const targetBlock = blockNumber + 2;
-      if (!library || !signedBundle) return;
-      setBundleStatus('pending');
-
+      if (bundleStatus.current !== 'success' && bundleStatus.current !== 'error') bundleStatus.current = 'pending';
       try {
         console.log(`sending bundle for block ${targetBlock}`);
         const relayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
@@ -52,14 +54,14 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
         if (flashbotsResponse === 0) {
           setSignedBundle(undefined);
           abortController.abort();
-          setBundleStatus('success');
+          bundleStatus.current = 'success';
           notify({
             heading: 'Success!',
             type: 'success',
             body: `Block ${targetBlock}: bundle mined! Check console for receipt details.`,
           });
           console.log(await response.receipts());
-        } else {
+        } else if (bundleStatus.current === 'pending') {
           notify({
             heading: 'Retrying...',
             type: 'info',
@@ -67,12 +69,12 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
           });
         }
       } catch (e) {
-        console.log(targetBlock, bundleStatus, e.message);
+        console.log(targetBlock, bundleStatus.current, e.message);
         setSignedBundle(undefined);
-        if (e.message === 'abort') return;
-        setBundleStatus('error');
+        if (e.message === 'abort' || bundleStatus.current === 'success') return;
+        bundleStatus.current = 'error';
         abortController.abort();
-        console.log(targetBlock, bundleStatus);
+        console.log(targetBlock, bundleStatus.current);
         notify({ heading: 'Error', type: 'error', body: `Block ${targetBlock}: ${e.message as string}.` });
       }
     };
@@ -83,7 +85,7 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
     <BundleContext.Provider
       value={{
         signedBundle,
-        bundleStatus,
+        bundleStatus: bundleStatus.current,
         sendBundle,
       }}
     >
