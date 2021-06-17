@@ -22,14 +22,16 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
   const [signedBundle, setSignedBundle] = useState<string[]>();
   const sendBundle = setSignedBundle;
   const { blockNumber } = useContext(ChainContext);
-  const { notify } = useContext(NotificationContext);
-  const bundleStatus = 'hi';
+  const { notify, clearNotifications } = useContext(NotificationContext);
+  const [bundleStatus, setBundleStatus] = useState<'pending' | 'error' | 'success'>();
 
   useEffect(() => {
     const abortController = new AbortController();
     const sendBundle = async (abortSignal) => {
       const targetBlock = blockNumber + 2;
       if (!library || !signedBundle) return;
+      setBundleStatus('pending');
+
       try {
         console.log(`sending bundle for block ${targetBlock}`);
         const relayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
@@ -41,7 +43,7 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
           response.wait(),
           new Promise((_resolve, reject) => {
             abortSignal.addEventListener('abort', () => {
-              const error = new Error('bundle mined');
+              const error = new Error('abort');
               reject(error);
             });
           }),
@@ -49,23 +51,29 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
         console.log(flashbotsResponse);
         if (flashbotsResponse === 0) {
           setSignedBundle(undefined);
+          abortController.abort();
+          setBundleStatus('success');
           notify({
-            heading: 'Bundle mined',
+            heading: 'Success!',
             type: 'success',
-            body: `Bundle mined in block ${targetBlock}! Check console for receipt details`,
+            body: `Block ${targetBlock}: bundle mined! Check console for receipt details.`,
           });
           console.log(await response.receipts());
         } else {
           notify({
-            heading: 'Bundle not mined, retrying',
+            heading: 'Retrying...',
             type: 'info',
-            body: `Block ${targetBlock}: bundle submitted but not mined, retrying...`,
+            body: `Block ${targetBlock}: bundle was not included.`,
           });
         }
       } catch (e) {
+        console.log(targetBlock, bundleStatus, e.message);
         setSignedBundle(undefined);
-        if (e.message === 'bundle mined') return;
-        notify({ heading: 'Error', type: 'error', body: `Block ${targetBlock}: ${e.message as string}` });
+        if (e.message === 'abort') return;
+        setBundleStatus('error');
+        abortController.abort();
+        console.log(targetBlock, bundleStatus);
+        notify({ heading: 'Error', type: 'error', body: `Block ${targetBlock}: ${e.message as string}.` });
       }
     };
     sendBundle(abortController.signal);

@@ -8,10 +8,12 @@ type Notification = { heading: string; body: string; type?: 'info' | 'success' |
 
 type ContextProps = {
   notify: ({ heading, body, type }: Notification) => void;
+  clearNotifications: () => void;
 };
 
 export const NotificationContext = createContext<ContextProps>({
   notify: ({ heading, body, type }: Notification) => {},
+  clearNotifications: () => {},
 });
 
 export const WithNotifications = ({ children }: { children: ReactNode }) => {
@@ -19,6 +21,8 @@ export const WithNotifications = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const deleteNotification = (i) => setNotifications(notifications.filter((_, n) => n !== i));
+
+  const clearNotifications = () => setNotifications([]);
 
   return (
     <NotificationContext.Provider
@@ -28,6 +32,7 @@ export const WithNotifications = ({ children }: { children: ReactNode }) => {
             ...prevNotifications.filter((_, i) => prevNotifications.length - i < maxNotifications),
             { show: true, ...notification },
           ]),
+        clearNotifications,
       }}
     >
       {children}
