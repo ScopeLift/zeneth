@@ -10,7 +10,7 @@ export const Footer = () => {
         Privacy Policy
       </a>{' '}
       |{' '}
-      <a href="/static/docs/Zeneth-Privacy-Policy-061621.pdf" target="_blankd" className="text-purple-800">
+      <a href="/static/docs/Zeneth-Terms-of-Service-061621.pdf" target="_blankd" className="text-purple-800">
         Terms of Service
       </a>
     </div>
