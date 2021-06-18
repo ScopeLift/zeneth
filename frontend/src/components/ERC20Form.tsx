@@ -176,9 +176,9 @@ const ERC20Form = () => {
   const label = 'w-24 text-sm block self-center flex-shrink-0';
   const submitDisabled = showAddressValidationError || showAmountValidationError || bundleStatus === 'pending';
   return (
-    <div className="shadow-lg p-7 bg-gradient-to-br from-red-200 to-purple-200 rounded-lg">
+    <div className="shadow-lg p-12 bg-gradient-to-br from-purple-100 via-red-100 to-transparent rounded-lg">
       <form className="flex flex-col" spellCheck="false">
-        <h1 className="text-2xl mb-7 text-gray-700">Gasless Token Transfer</h1>
+        <h1 className="text-2xl mb-7 text-gray-700 font-bold">Gasless Token Transfer</h1>
         <div className={formGroup}>
           <label className={label}>Token</label>
           <TokenSelect

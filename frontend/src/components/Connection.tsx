@@ -113,7 +113,7 @@ export const Connection = () => {
   // clear modal after successful connection
   useEffect(() => {
     if (active) clearModal();
-  }, [active]);
+  }, [active, connector]);
 
   // handle logic to connect in reaction to certain events on the injected ethereum provider, if it exists
   useInactiveListener(!triedEager || !!activatingConnector);
@@ -135,7 +135,7 @@ export const Connection = () => {
 
   return (
     <>
-      <button className="flex items-center w-full h-full" onClick={() => showConnectionModal()}>
+      <button className="flex items-center w-full h-full px-4 py-2" onClick={() => showConnectionModal()}>
         <div
           className={
             'h-3 w-3 border-2 rounded-full mr-2 ' +

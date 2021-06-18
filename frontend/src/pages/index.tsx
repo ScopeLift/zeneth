@@ -1,8 +1,7 @@
+import { ArrowCircleRightIcon } from '@heroicons/react/outline';
 import Link from 'next/link';
 
 const Index = () => {
-  const buttonClass =
-    'mt-10 p-5 py-7 flex self-center align-middle cursor-pointer text-xl bg-gradient-to-br from-red-300 to-purple-400 rounded opacity-90 hover:opacity-100';
   return (
     <div className="flex flex-row">
       {/* <Link href="/l2-entry"> */}
@@ -12,7 +11,10 @@ const Index = () => {
       </div>
       {/* </Link> */}
       <Link href="/token-transfer">
-        <div className={buttonClass}>Gasless Token Transfer</div>
+        <div className="mt-10 p-5 py-7 flex flex-row self-center align-middle cursor-pointer text-xl bg-gradient-to-br from-purple-200 via-red-200 to-transparent rounded opacity-90 hover:opacity-100">
+          <div>Gasless Token Transfer</div>
+          <ArrowCircleRightIcon className="ml-2 mt-1 h-5 w-5" />
+        </div>
       </Link>
     </div>
   );

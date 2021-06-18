@@ -28,7 +28,7 @@ const MyApp = ({ Component, pageProps }: { Component: FC; pageProps: Record<stri
                 <div className="my-5">
                   <Header />
                 </div>
-                <div className="my-5 flex-grow">
+                <div className="my-5 flex-grow flex flex-col h-full justify-center">
                   <Component {...pageProps} />
                 </div>
                 <div className="my-5">
