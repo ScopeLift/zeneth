@@ -2,7 +2,7 @@ import { createContext, useState, ReactNode, useContext, Dispatch, useEffect, us
 import { ChainContext } from './ChainContext';
 import { useWeb3React } from '@web3-react/core';
 import { Web3Provider } from '@ethersproject/providers';
-import { ZenethRelayer } from '@scopelift/zeneth-js';
+import { ZenethRelayer, FlashbotsTransaction } from '@scopelift/zeneth-js';
 import { NotificationContext } from './NotificationContext';
 
 type ContextProps = {
@@ -38,8 +38,8 @@ export const WithBundleManager = ({ children }: { children: ReactNode }) => {
         console.log(`sending bundle for block ${targetBlock}`);
         const relayer = await ZenethRelayer.create(library, process.env.AUTH_PRIVATE_KEY);
         const response = await relayer.sendBundle(signedBundle, targetBlock);
-        if (response.error) {
-          throw new Error(response.error);
+        if ('error' in response) {
+          throw new Error(response.error.message);
         }
         const flashbotsResponse = await Promise.race([
           response.wait(),
