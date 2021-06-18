@@ -135,7 +135,7 @@ export const Connection = () => {
 
   return (
     <>
-      <button className="flex items-center ml-4" onClick={() => showConnectionModal()}>
+      <button className="flex items-center w-full h-full" onClick={() => showConnectionModal()}>
         <div
           className={
             'h-3 w-3 border-2 rounded-full mr-2 ' +
