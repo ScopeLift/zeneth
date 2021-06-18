@@ -5,7 +5,7 @@ import { useEagerConnect, useInactiveListener } from 'hooks/react-web3';
 import { network, injected } from 'helpers/connectors';
 import { ModalContext } from 'components/ModalContext';
 import { ToastContext } from 'components/Toast';
-import { XIcon } from '@heroicons/react/solid';
+
 import {
   NoEthereumProviderError,
   UserRejectedRequestError as UserRejectedRequestErrorInjected,
@@ -17,8 +17,8 @@ enum ConnectorNames {
 }
 
 const connectorsByName: { [connectorName in ConnectorNames]: any } = {
-  [ConnectorNames.Network]: network,
-  [ConnectorNames.Injected]: injected,
+  [ConnectorNames.Network]: { connector: network },
+  [ConnectorNames.Injected]: { connector: injected, icon: '/static/images/metamask-fox.svg' },
 };
 
 function getErrorMessage(error: Error) {
@@ -35,40 +35,38 @@ function getErrorMessage(error: Error) {
 }
 
 const ConnectionModal = ({ props }) => {
-  const { clearModal } = useContext(ModalContext);
-  const { connector, chainId, activate, deactivate, error } = useWeb3React<Web3Provider>();
+  const { connector, activate, deactivate, error } = useWeb3React<Web3Provider>();
   const { activatingConnector, setActivatingConnector, triedEager } = props;
 
   return (
     <div className="pb-2">
-      <div className="flex justify-between w-full bg-gray-200 p-3 font-semibold">
-        <h2>Connect Wallet</h2>
-
-        <XIcon className="opacity-50 hover:opacity-80 hover:cursor-pointer h-6 w-6" onClick={() => clearModal()} />
-      </div>
-
-      <div className="flex flex-col px-2">
-        <div className="my-2">Choose provider and network:</div>
+      <div className="flex flex-col px-2 justify-center items-center">
+        <div className="my-2 mx-auto">Choose your web3 provider:</div>
         {Object.keys(connectorsByName).map((connectorName) => {
-          const currentConnector = connectorsByName[connectorName];
+          const { connector: currentConnector, icon } = connectorsByName[connectorName];
+          console.log(connectorName);
+          console.log(currentConnector);
           const activating = currentConnector === activatingConnector;
           const connected = currentConnector === connector;
           const disabled = !triedEager || !!activatingConnector || connected || !!error;
           if (connectorName === 'Network') return <div key={connectorName}></div>;
           return (
-            <div key={connectorName} className="flex bg-gray-100 mb-2 p-2 rounded items-center content-between">
+            <div key={connectorName} className="flex mb-2 p-2 rounded items-center content-between">
               <button
-                className={'mx-4 w-3/5 font-semibold ' + (connected ? 'border-green-300' : '')}
+                type="button"
+                className={`inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 ${
+                  connected ? 'bg-green-100' : 'bg-white'
+                } hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
                 onClick={async () => {
                   console.log(connected, activating, connectorName);
                   if (connected) return deactivate();
                   // if connector is injected, set the activating connector
                   if (!activating && connectorName === ConnectorNames.Injected) {
-                    await activate(connectorsByName[connectorName]);
+                    await activate(currentConnector);
                   }
                 }}
               >
-                {connectorName}
+                <img src={icon} className="mr-4" /> {connectorName}
               </button>
             </div>
           );
@@ -107,8 +105,8 @@ export const Connection = () => {
   // use network connector if wallet disconnected
   useEffect(() => {
     if (triedEager && !activatingConnector && !active && !connector) {
-      setActivatingConnector(connectorsByName['Network']);
-      activate(connectorsByName['Network']);
+      setActivatingConnector(connectorsByName['Network'].connector);
+      activate(connectorsByName['Network'].connector);
     }
   }, [triedEager, activatingConnector, active, connector]);
 
