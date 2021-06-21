@@ -108,16 +108,17 @@ export class ZenethRelayer {
     if (isMetaMask) provider.provider.isMetaMask = false;
 
     // Prompt the user to sign each transaction
-    const signedTransactions: string[] = [];
-    for (const populatedTransaction of populatedTransactions) {
-      const tx = TransactionFactory.fromTxData(populatedTransaction, { common: this.common });
-      const unsignedTransaction = tx.getMessageToSign();
-      const signature = await this.provider.send('eth_sign', [from, hexlify(unsignedTransaction)]);
-      const splitSig = splitSignature(signature);
-      // @ts-expect-error this is a private method and not part of the type definitions
-      const txWithSig = tx._processSignature(splitSig.v, arrayify(splitSig.r), arrayify(splitSig.s));
-      signedTransactions.push(hexlify(txWithSig.serialize()));
-    }
+    const signedTransactions = await Promise.all(
+      populatedTransactions.map(async (populatedTransaction) => {
+        const tx = TransactionFactory.fromTxData(populatedTransaction, { common: this.common });
+        const unsignedTransaction = tx.getMessageToSign();
+        const signature = await this.provider.send('eth_sign', [from, hexlify(unsignedTransaction)]);
+        const splitSig = splitSignature(signature);
+        // @ts-expect-error this is a private method and not part of the type definitions
+        const txWithSig = tx._processSignature(splitSig.v, arrayify(splitSig.r), arrayify(splitSig.s));
+        return hexlify(txWithSig.serialize());
+      })
+    );
 
     // Reset provider to it's original state and return the signed transactions
     provider.provider.isMetaMask = isMetaMask;
