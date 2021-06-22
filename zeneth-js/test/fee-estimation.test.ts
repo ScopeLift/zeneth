@@ -26,8 +26,10 @@ describe('Estimates Fees', () => {
     const expectedEthPriceForBundle = BigNumber.from(bundleGasLimit)
       .mul(BigNumber.from(mockedGasPrice))
       .mul(flashbotsPremium);
+    const expectedEthBribeString = expectedEthPriceForBundle.toString();
     const expectedBundlePriceInUsd = expectedEthPriceForBundle.mul(BigNumber.from(mockedEthPrice));
     const expectedTokensNeededForBribe = expectedBundlePriceInUsd.div(BigNumber.from(mockedTokenPrice));
+    const expectedTokenBribeString = expectedTokensNeededForBribe.toString();
 
     const estimate = await estimateFee({
       tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -36,7 +38,7 @@ describe('Estimates Fees', () => {
       flashbotsPremiumMultiplier: flashbotsPremium,
     });
 
-    expect(estimate.bribeInEth).to.equal(expectedEthPriceForBundle);
-    expect(estimate.bribeInTokens).to.equal(expectedTokensNeededForBribe);
+    expect(estimate.bribeInEth.toString()).to.equal(expectedEthBribeString);
+    expect(estimate.bribeInTokens.toString()).to.equal(expectedTokenBribeString);
   });
 });
