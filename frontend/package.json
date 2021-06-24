@@ -16,6 +16,7 @@
     "@headlessui/react": "^1.1.1",
     "@heroicons/react": "^1.0.1",
     "@scopelift/zeneth-js": "^0.0.1",
+    "@scopelift/zeneth-contracts": "^0.0.1",
     "@tailwindcss/forms": "^0.3.3",
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
