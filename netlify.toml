@@ -1,0 +1,7 @@
+[build]
+  command = "yarn build"
+  publish = "frontend/out/"
+
+[build.environment]
+  NODE_VERSION = "14.16.1"
+  YARN_VERSION = "1.22.10"
