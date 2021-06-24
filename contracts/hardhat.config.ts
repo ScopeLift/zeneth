@@ -25,11 +25,17 @@ const chainIds = {
 };
 
 // Ensure that we have all the environment variables we need.
-const mnemonic = process.env.MNEMONIC as string;
-if (!mnemonic) throw new Error('Please set your MNEMONIC in a .env file');
+let mnemonic = process.env.MNEMONIC as string;
+if (!mnemonic) {
+  console.warn('Please set your MNEMONIC in a .env file');
+  mnemonic = 'taxi taxi taxi taxi taxi taxi taxi taxi taxi taxi taxi taxi';
+}
 
-const infuraApiKey = process.env.INFURA_ID as string;
-if (!infuraApiKey) throw new Error('Please set your INFURA_ID in a .env file');
+let infuraApiKey = process.env.INFURA_ID as string;
+if (!infuraApiKey) {
+  console.warn('Please set your INFURA_ID in a .env file');
+  infuraApiKey = '00000000000000000000000000000000';
+}
 
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + infuraApiKey;
